@@ -1,0 +1,63 @@
+#pragma warning(disable : 4996) // Disable warnings about some functions in VS 2005
+#define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
+#include <stdio.h>
+#include <tchar.h>
+#include <conio.h>
+#include <process.h>
+#include "USMCDLL.h"
+
+#pragma once
+class My8SMC1
+{
+public:
+	My8SMC1();
+	~My8SMC1();
+	USMC_State StateX;
+	USMC_State StateY;
+	USMC_State StateZ;
+private:
+	USMC_Devices DVS;
+	DWORD Dev;
+    USMC_State State;
+	USMC_StartParameters StPrms;
+	USMC_Parameters PrmsX, PrmsY, PrmsZ;
+	USMC_Parameters *Prms_Ptr;
+	USMC_Mode Mode;
+	USMC_EncoderState EnState;
+	float Speed = 2000.0f;
+    int DevX = 0;
+    int DevY = 1;
+    int DevZ = 2;
+public:
+	// Init
+	int Init();
+	// MoveX
+	int MoveX(int DestPos);
+	int MoveY(int DestPos);
+	int MoveZ(int DestPos);
+    int MoveXSync(int DestPos);
+    int MoveYSync(int DestPos);
+    int MoveZSync(int DestPos);
+	//
+	int HomeX(void);
+	int HomeY(void);
+	int HomeZ(void);
+	int GetInfo(void);
+	int Flash(void);
+	int SetPrmsDev(int);
+	int GetPrmsDev(int);
+	int SetPrmsAll(void);
+	int GetPrmsAll(void);
+	int SetAccXYZ(float, float, float);
+	int SetAccX(float);
+	int SetAccY(float);
+	int SetAccZ(float);
+	int SetDecX(float);
+	int SetDecY(float);
+	int SetDecZ(float);
+private:
+	int MoveDev(DWORD Dev, int DestPos);
+	int HomeDev(DWORD Dev);
+    int GetPrmsByDev(int InDev, USMC_Parameters **OutPrms);
+};
+
