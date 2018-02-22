@@ -27,16 +27,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    ../../source/repos/ConsoleApplication1/ConsoleApplication1/My8SMC1.cpp \
-    Source.cpp
+    Source.cpp \
+    moduleconfig.cpp \
+    adcread.cpp \
+    My8SMC1.cpp
 
 HEADERS += \
         mainwindow.h \
     USMCDLL.h \
-    ../../source/repos/ConsoleApplication1/ConsoleApplication1/My8SMC1.h \
     include2/e2010cmd.h \
     include2/ifc_ldev.h \
-    include2/ioctl.h
+    include2/ioctl.h \
+    moduleconfig.h \
+    adcread.h \
+    My8SMC1.h
 
 FORMS += \
         mainwindow.ui

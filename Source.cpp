@@ -29,6 +29,7 @@ void    *data_rbuf;
 ULONG   *sync;
 
 LONG   complete;
+LONG   stop;
 
 HANDLE  hThread = NULL;
 ULONG   Tid;
@@ -53,35 +54,7 @@ HINSTANCE CallCreateInstance(char* name)
 	return hComponent;
 }
 
-
-// Поток в котором осуществляется сбор данных
-ULONG WINAPI ServiceThread(PVOID /*Context*/)
-{
-	ULONG halfbuffer = IrqStep*pages / 2;              // Собираем половинками кольцевого буфера
-	ULONG s;
-	InterlockedExchange(&s, *sync);
-	ULONG fl2, fl1 = fl2 = (s <= halfbuffer) ? 0 : 1;  // Настроили флаги
-	void *tmp, *tmp1;
-
-	for (int i = 0; i<multi; i++)                         // Цикл по необходимомму количеству половинок
-	{
-		while (fl2 == fl1)
-		{
-			if (InterlockedCompareExchange(&complete, 3, 3)) return 0;
-			InterlockedExchange(&s, *sync);
-			fl2 = (s <= halfbuffer) ? 0 : 1; // Ждем заполнения половинки буфера
-		}
-
-		tmp = ((char *)fdata + (halfbuffer*i)*pointsize);                     // Настраиваем указатель в файле
-		tmp1 = ((char*)data_rbuf + (halfbuffer*fl1)*pointsize);                   // Настраиваем указатель в кольцевом буфере
-		memcpy(tmp, tmp1, halfbuffer*pointsize);   // Записываем данные в файл
-		InterlockedExchange(&s, *sync);
-		fl1 = (s <= halfbuffer) ? 0 : 1;                 // Обновляем флаг
-		Sleep(0);                                     // если собираем медленно то можно и спать больше
-	}
-	return 0;                                         // Вышли
-}
-
+extern ULONG WINAPI ServiceThread(PVOID /*Context*/);
 
 LUnknown* pIUnknown;
 IDaqLDevice* pI;

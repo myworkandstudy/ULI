@@ -1,4 +1,4 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "My8SMC1.h"
 
 
@@ -131,6 +131,29 @@ int My8SMC1::HomeZ(void)
 	return 0;
 }
 
+int My8SMC1::WaitDoneAll(void)
+{
+    while (1){
+        if (USMC_GetState(DevX, StateX))
+            return TRUE;
+        if (StateX.CurPos==TargetX) break;
+        Sleep(20);
+    };
+    while (1){
+        if (USMC_GetState(DevY, StateY))
+            return TRUE;
+        if (StateY.CurPos==TargetY) break;
+        Sleep(20);
+    };
+    while (1){
+        if (USMC_GetState(DevZ, StateZ))
+            return TRUE;
+        if (StateZ.CurPos==TargetZ) break;
+        Sleep(20);
+    };
+    return 0;
+}
+
 int My8SMC1::GetInfo(void)
 {
     if (USMC_GetState(DevX, StateX))
@@ -187,6 +210,35 @@ int My8SMC1::SetAccXYZ(float accX, float accY, float accZ)
 	if (SetAccZ(accZ))
 		return TRUE;
 	return 0;
+}
+
+int My8SMC1::SetSpeedXYZ(float speX, float speY, float speZ)
+{
+    if (SetSpeedX(speX))
+        return TRUE;
+    if (SetSpeedY(speY))
+        return TRUE;
+    if (SetSpeedZ(speZ))
+        return TRUE;
+    return 0;
+}
+
+int My8SMC1::SetSpeedX(float spe)
+{
+    SpeedX = spe;
+    return 0;
+}
+
+int My8SMC1::SetSpeedY(float spe)
+{
+    SpeedY = spe;
+    return 0;
+}
+
+int My8SMC1::SetSpeedZ(float spe)
+{
+    SpeedZ = spe;
+    return 0;
 }
 
 int My8SMC1::SetAccX(float acc)
@@ -258,9 +310,11 @@ int My8SMC1::GetPrmsDev(int Dev)
 
 int My8SMC1::MoveDev(DWORD Dev, int DestPos)
 {
+    SetTargetByDev(Dev, DestPos);
 	if (USMC_GetStartParameters(Dev, StPrms))
 		return TRUE;
 	StPrms.SlStart = TRUE;
+    Speed = GetSpeedByDev(Dev);
 	if (USMC_Start(Dev, DestPos, Speed, StPrms))
 		return TRUE;
 	//flash
@@ -268,6 +322,42 @@ int My8SMC1::MoveDev(DWORD Dev, int DestPos)
 	//if (USMC_SaveParametersToFlash(Dev))
 	//	return TRUE;
 	return 0;
+}
+
+void My8SMC1::SetTargetByDev(DWORD Dev, int DestPos)
+{
+    if (Dev==DevX) TargetX = DestPos;
+    if (Dev==DevY) TargetY = DestPos;
+    if (Dev==DevZ) TargetZ = DestPos;
+    //return 0;
+}
+
+int My8SMC1::StopDev(DWORD Dev)
+{
+    if (USMC_Stop(Dev))
+        return TRUE;
+    return 0;
+}
+
+int My8SMC1::StopX(void)
+{
+    if (USMC_Stop(DevX))
+        return TRUE;
+    return 0;
+}
+
+int My8SMC1::StopY(void)
+{
+    if (USMC_Stop(DevY))
+        return TRUE;
+    return 0;
+}
+
+int My8SMC1::StopZ(void)
+{
+    if (USMC_Stop(DevZ))
+        return TRUE;
+    return 0;
 }
 
 int My8SMC1::HomeDev(DWORD Dev)
@@ -327,4 +417,18 @@ int My8SMC1::GetPrmsByDev(int InDev, USMC_Parameters **OutPrms)
         *OutPrms = (USMC_Parameters *)&PrmsZ;
     }
 	return 0;
+}
+
+float My8SMC1::GetSpeedByDev(int InDev)
+{
+    if (InDev==DevX){
+        return SpeedX;
+    }
+    if (InDev==DevY){
+        return SpeedY;
+    }
+    if (InDev==DevZ){
+        return SpeedZ;
+    }
+    return 0;
 }

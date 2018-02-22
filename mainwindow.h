@@ -54,6 +54,10 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_pushButton_12_clicked();
+
+    void on_pushButton_13_clicked();
+
 private:
     DataTable m_dataTable;
     Ui::MainWindow *ui;

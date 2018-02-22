@@ -1,7 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 //#include "USMCDLL.h"
-#include "../../source/repos/ConsoleApplication1/ConsoleApplication1/My8SMC1.h"
+#include "My8SMC1.h"
+#include "moduleconfig.h"
+#include "adcread.h"
 #include <QDebug>
 #include <QTimer>
 
@@ -20,9 +22,8 @@ USMC_Devices DVS;
 DWORD Dev;
 My8SMC1 Standa;
 int xG = 0;
-
-extern int InitE14(void);
-extern ULONG GetVal(void);
+ModuleConfig MConf;
+ADCRead ADC;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -30,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent) :
     series0(new QLineSeries()),
     series1(new QLineSeries())
 {
+
+    //------------------------------------
     ui->setupUi(this);
 
     //![1]
@@ -82,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
         //
         //!InitE14();
+        ADC.Init();
 
         //
         tmr = new QTimer(this); // Создаем объект класса QTimer и передаем адрес переменной
@@ -166,14 +170,14 @@ void MainWindow::updateTime()
     ui->label_4->setText(QString::number(Standa.StateY.CurPos));
     ui->label_5->setText(QString::number(Standa.StateZ.CurPos));
     //
-    //!ui->label_6->setText(QString::number(GetVal()));
+    //!ui->label_6->setText(QString::number(ADC.GetValue0()));
     //
     xG+=100;
     if (xG>=32767) {
         xG=0;
         series0->clear();
     }
-    //!series0->append(xG, GetVal());
+    //!series0->append(xG, ADC.GetValue0());
 }
 
 void MainWindow::on_pushButton_3_clicked()
@@ -196,4 +200,25 @@ void MainWindow::on_pushButton_clicked()
     Standa.MoveX(ui->spinBox->value());
     Standa.MoveY(ui->spinBox_2->value());
     Standa.MoveZ(ui->spinBox_3->value());
+}
+
+void MainWindow::on_pushButton_12_clicked()
+{
+    //------------------------------------
+    //Load Config from JSON file
+    MConf.Load();
+    //Set params to Standa Driver
+    //Standa.SetAccXYZ(MConf.AccX, MConf.AccY, MConf.AccZ);
+    //
+    Standa.SetSpeedXYZ(MConf.SpeedX, MConf.SpeedY, MConf.SpeedZ);
+    //
+    Standa.HomeX();
+    Standa.HomeY();
+    //
+    MConf.Start(&Standa);
+}
+
+void MainWindow::on_pushButton_13_clicked()
+{
+    MConf.Stop(&Standa);
 }
