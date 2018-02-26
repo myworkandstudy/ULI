@@ -85,7 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
         //
         //!InitE14();
-        ADC.Init();
+        //ADC.Init();
 
         //
         tmr = new QTimer(this); // Создаем объект класса QTimer и передаем адрес переменной
@@ -180,6 +180,17 @@ void MainWindow::updateTime()
     //!series0->append(xG, ADC.GetValue0());
 }
 
+void MainWindow::updateTimeDeb()
+{
+    arrSidx<10000-5 ? arrSidx++ : 0;
+    arrS[arrSidx] = ADC.CureS;
+    arrSidx++;
+    arrS[arrSidx] = ADC.CureS - lastArrS;
+    lastArrS = ADC.CureS;
+    arrSidx++;
+    arrS[arrSidx] = 1;
+}
+
 void MainWindow::on_pushButton_3_clicked()
 {
     ui->spinBox->setValue(ui->label_3->text().toInt());
@@ -221,4 +232,59 @@ void MainWindow::on_pushButton_12_clicked()
 void MainWindow::on_pushButton_13_clicked()
 {
     MConf.Stop(&Standa);
+}
+
+void MainWindow::on_pushButton_14_clicked()
+{
+    ADC.Init();
+}
+
+void MainWindow::on_pushButton_15_clicked()
+{
+    ADC.StartGetData();
+    //
+    for (int i=0;i<10000;i++) {
+        arrS[i] = 0;
+    }
+    arrSidx = 0;
+    lastArrS = 0;
+    //
+    tmrDeb = new QTimer(this); // Создаем объект класса QTimer и передаем адрес переменной
+    tmrDeb->setInterval(100); // Задаем интервал таймера
+    connect(tmrDeb, SIGNAL(timeout()), this, SLOT(updateTimeDeb())); // Подключаем сигнал таймера к нашему слоту
+    tmrDeb->start(); // Запускаем таймер
+}
+
+void MainWindow::on_pushButton_16_clicked()
+{
+    ADC.StopGetData();
+    tmrDeb->stop();
+
+    //char fileName[100] = ; // Путь к файлу для записи
+    FILE* file = fopen("data2.txt", "w");
+    if (file) // если есть доступ к файлу,
+    {
+        DWORD w;
+        WORD w1,w2;
+        for (int i=0;i<ADC.CureArrIdx;i++){
+            w = (UINT32)ADC.arrDataIdx[i];
+            w1 = (UINT16)w;
+            w2 = (UINT16)(w>>16);
+            fprintf_s(file,"%d %x %x\n",i, w2, w1);
+        }
+    } else {
+        std::cout << "Нет доступа к файлу!" << endl;
+    }
+    fclose(file);
+
+    //HANDLE hFile2;
+    //Write to file
+    //hFile2 = CreateFileA("data2.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
+    //if (hFile2 == INVALID_HANDLE_VALUE) { return ; }
+    //WriteFile(hFile2, tmp1, halfbuffer*pointsize, &BytesWritten, NULL);
+}
+
+void MainWindow::on_pushButton_17_clicked()
+{
+    ADC.FixS();
 }

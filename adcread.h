@@ -23,6 +23,15 @@ public:
     int StartGetData(void);
     int StopGetData(void);
     int End(void);
+    int FixS(void);
+    //
+    int CureVal;
+    ULONG databufsize;
+    ULONG CureS;
+    ULONG64 CureByteNum;
+    ULONG64 CureBIdxFull;
+    int CureArrIdx;
+    ULONG64 arrDataIdx[1000];
 };
 
 #endif // ADCREAD_H

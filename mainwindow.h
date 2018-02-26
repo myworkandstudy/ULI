@@ -46,6 +46,7 @@ private slots:
     void on_toolButton_clicked();
 
     void updateTime();
+    void updateTimeDeb();
     void on_pushButton_3_clicked();
 
     void on_pushButton_4_clicked();
@@ -58,6 +59,14 @@ private slots:
 
     void on_pushButton_13_clicked();
 
+    void on_pushButton_14_clicked();
+
+    void on_pushButton_15_clicked();
+
+    void on_pushButton_16_clicked();
+
+    void on_pushButton_17_clicked();
+
 private:
     DataTable m_dataTable;
     Ui::MainWindow *ui;
@@ -67,6 +76,10 @@ private:
     QChartView *chartView;
     QChart *createLineChart() const;
     QTimer *tmr;
+    QTimer *tmrDeb;
+    int arrS[10000];
+    int arrSidx;
+    int lastArrS;
 };
 
 #endif // MAINWINDOW_H

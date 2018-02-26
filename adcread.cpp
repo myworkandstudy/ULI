@@ -4,8 +4,7 @@
 extern int InitE14(void);
 extern ULONG GetVal(void);
 typedef IDaqLDevice* (*CREATEFUNCPTR)(ULONG Slot);
-extern CREATEFUNCPTR CreateInstance;
-extern HINSTANCE CallCreateInstance(char* name);
+
 extern LUnknown* pIUnknown;
 extern IDaqLDevice* pI;
 extern HRESULT hr;
@@ -19,7 +18,7 @@ extern void    *data_rbuf;
 extern ULONG   *sync;
 
 extern LONG   complete;
-extern LONG   stop;
+LONG   stop;
 
 extern HANDLE  hThread;
 extern ULONG   Tid;
@@ -32,37 +31,64 @@ extern ULONG  pointsize;     // pI->GetParameter(L_POINT_SIZE, &ps) возвра
 
 using namespace std;
 
+ULONG   status;
+
 ADCRead::ADCRead()
 {
 
 }
 
+CREATEFUNCPTR CreateInstance;
+
+HINSTANCE CallCreateInstance(char* name)
+{
+    HINSTANCE hComponent = ::LoadLibraryA(name);
+    if (hComponent == NULL) { return 0; }
+
+    CreateInstance = (CREATEFUNCPTR)::GetProcAddress(hComponent, "CreateInstance");
+    if (CreateInstance == NULL) { return 0; }
+    return hComponent;
+}
+
 // Поток в котором осуществляется сбор данных
-ULONG WINAPI ServiceThread(PVOID /*Context*/)
+ULONG WINAPI ServiceThread(PVOID ctx)
 {
     ULONG halfbuffer = IrqStep*pages / 2;              // Собираем половинками кольцевого буфера
-    ULONG s;
-    InterlockedExchange(&s, *sync);
-    ULONG fl2, fl1 = fl2 = (s <= halfbuffer) ? 0 : 1;  // Настроили флаги
-    void *tmp, *tmp1;
+    //ULONG s;
+    ADCRead *myADC = (ADCRead*)ctx;
 
-    //for (int i = 0; i<multi; i++)                         // Цикл по необходимомму количеству половинок
-    int i = 0;
+    InterlockedExchange(&myADC->CureS, *sync);
+    ULONG fl2, fl1 = fl2 = (myADC->CureS <= halfbuffer) ? 0 : 1;  // Настроили флаги
+    void *tmp, *tmp1;
+    ULONG BytesWritten;
+    myADC->CureByteNum = 0;
+
+    ULONG i=0;
     while (1)
     {
         while (fl2 == fl1)
         {
             if (InterlockedCompareExchange(&complete, 3, 3))
                 return 0;
-            InterlockedExchange(&s, *sync);
-            fl2 = (s <= halfbuffer) ? 0 : 1; // Ждем заполнения половинки буфера
+            InterlockedExchange(&myADC->CureS, *sync);
+            fl2 = (myADC->CureS <= halfbuffer) ? 0 : 1; // Ждем заполнения половинки буфера
+            //
+            if (InterlockedCompareExchange(&stop, 1, 1)){
+                //
+                tmp1 = ((char*)data_rbuf + myADC->CureS*pointsize);
+                WriteFile(hFile, tmp1, halfbuffer*pointsize, &BytesWritten, NULL);
+                return 0;
+            }
         }
-
-        tmp = ((char *)fdata + (halfbuffer*i)*pointsize);                     // Настраиваем указатель в файле
+        //tmp = ((char *)fdata + (halfbuffer*i)*pointsize);                     // Настраиваем указатель в файле
         tmp1 = ((char*)data_rbuf + (halfbuffer*fl1)*pointsize);                   // Настраиваем указатель в кольцевом буфере
-        memcpy(tmp, tmp1, halfbuffer*pointsize);   // Записываем данные в файл
-        InterlockedExchange(&s, *sync);
-        fl1 = (s <= halfbuffer) ? 0 : 1;                 // Обновляем флаг
+        myADC->CureBIdxFull += ((2*halfbuffer*fl1)*pointsize);
+        //memcpy(tmp, tmp1, halfbuffer*pointsize);   // Записываем данные в файл
+        WriteFile(hFile, tmp1, halfbuffer*pointsize, &BytesWritten, NULL);
+        if (BytesWritten < halfbuffer*pointsize)
+            return 1;
+        InterlockedExchange(&myADC->CureS, *sync);
+        fl1 = (myADC->CureS <= halfbuffer) ? 0 : 1;                 // Обновляем флаг
         //
         if (InterlockedCompareExchange(&stop, 1, 1))
             break;
@@ -75,8 +101,6 @@ ULONG WINAPI ServiceThread(PVOID /*Context*/)
 
 int ADCRead::Init(void)
 {
-    InitE14();
-    //
     ADC_PAR adcPar;
     PLATA_DESCR_U2 pd;
     SLOT_PAR sl;
@@ -237,6 +261,7 @@ int ADCRead::Init(void)
 
         IrqStep = adcPar.t1.IrqStep; // обновили глобальные переменные котрые потом используются в ServiceThread
         pages = adcPar.t1.Pages;
+        databufsize = tm;
 
     } break;
 
@@ -356,13 +381,14 @@ int ADCRead::Init(void)
     cout << ".......... Starting ..." << endl;
 
     // Создаем файл
-    multi = 100;
+    multi = 8;
     fsize = multi*(pages / 2)*IrqStep; // размер файла
 
     hFile = CreateFileA("data.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
     if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
     else M_OK("CreateFile(data.dat)", endl);
 
+    //поток 32бит*100 000Гц== 3.2Мбит/с(~400КБ/с). У ЖД скорость записи от 50МБ/с (то есть нам достаточно, без задержек)
     hMap = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, fsize*pointsize, NULL);
     if (hMap == INVALID_HANDLE_VALUE) { M_FAIL("CreateFileMapping(data.dat)", GetLastError()); End(); return 11; }
     else M_OK("CreateFileMapping(data.dat)", endl);
@@ -372,12 +398,15 @@ int ADCRead::Init(void)
     else M_OK("MapViewOfFile(data.dat)", endl);
 
     complete = 0;
+    stop = 0;
 
     //pI->EnableCorrection(); // можно включить коррекцию данных, если она поддерживается модулем
 
     status = pI->InitStartLDevice(); // Инициализируем внутренние переменные драйвера
     if (status != L_SUCCESS) { M_FAIL("InitStartLDevice(ADC)", status); End(); return 11; }
     else M_OK("InitStartLDevice(ADC)", endl);
+
+    hThread = CreateThread(0, 0x2000, ServiceThread, this, 0, &Tid); // Создаем и запускаем поток сбора данных
 
     return 0;
 }
@@ -389,16 +418,12 @@ ULONG ADCRead::GetValue0()
 
 int ADCRead::StartGetData()
 {
-    ULONG   status;
-    int k;
-
-    hThread = CreateThread(0, 0x2000, ServiceThread, 0, 0, &Tid); // Создаем и запускаем поток сбора данных
-
+    CureArrIdx = 0;
     status = pI->StartLDevice(); // Запускаем сбор в драйвере
     if (status != L_SUCCESS) { M_FAIL("StartLDevice(ADC)", status); End(); return 11; }
     else M_OK("StartLDevice(ADC)", endl);
 
-    // Печатаем индикатор сбора данных
+    /*// Печатаем индикатор сбора данных
 
     while (!kbhit())
     {
@@ -414,43 +439,25 @@ int ADCRead::StartGetData()
         cout << endl << ".......... Wait for thread completition..." << endl;
         InterlockedBitTestAndSet(&complete, 0); //complete=1
         WaitForSingleObject(hThread, INFINITE);
-    }
-
-    cout << endl << ".......... Stop." << endl;
-
-    status = pI->StopLDevice(); // Остановили сбор
-    if (status != L_SUCCESS) { M_FAIL("StopLDevice(ADC)", status); End(); return 11; }
-    else M_OK("StopLDevice(ADC)", endl);
-
-    cout << endl << ".......... Press any key" << dec << endl;
-    _getch();
-
-    cout << "Converting ..." << endl;
-    // Создаем файл с данными 32 в 16 бит для 791. для других просто копия.
-
-    hFile1 = CreateFileA("data1.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
-    if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data1.dat)", GetLastError()); End(); return 11; }
-    else M_OK("CreateFile(data1.dat)", endl);
-
-    hMap1 = CreateFileMapping(hFile1, NULL, PAGE_READWRITE, 0, fsize * sizeof(short), NULL);
-    if (hMap == INVALID_HANDLE_VALUE) { M_FAIL("CreateFileMapping(data1.dat)", GetLastError()); End(); return 11; }
-    else M_OK("CreateFileMapping(data1.dat)", endl);
-
-    fdata1 = MapViewOfFile(hMap1, FILE_MAP_WRITE, 0, 0, 0);
-    if (fdata == NULL) { M_FAIL("MapViewOfFile(data1.dat)", GetLastError()); End(); return 11; }
-    else M_OK("MapViewOfFile(data1.dat)", endl);
-
-    for (k = 0; k<fsize; k++) ((PSHORT)fdata1)[k] = ((PSHORT)fdata)[k*(pointsize >> 1)];
-
-    cout << endl << ".......... Press any key" << dec << endl;
-    _getch();
+    }*/
 
     return 0;
 }
 
 int ADCRead::End()
 {
-    ULONG   status;
+    stop = 1;
+    if (WAIT_OBJECT_0 == WaitForSingleObject(hThread, 1000)) {
+        complete = 1;
+        //break;
+    }
+    if (!complete)
+    {
+        cout << endl << ".......... Wait for thread completition..." << endl;
+        InterlockedBitTestAndSet(&complete, 0); //complete=1
+        WaitForSingleObject(hThread, INFINITE);
+    }
+
     status = pI->CloseLDevice();
     if (status != L_SUCCESS) { M_FAIL("CloseLDevice", status); /*goto end;*/ }
     else M_OK("CloseLDevice", endl);
@@ -475,5 +482,22 @@ int ADCRead::End()
 
 int ADCRead::StopGetData()
 {
-    return GetVal();
+    status = pI->StopLDevice(); // Остановили сбор
+    if (status != L_SUCCESS) { M_FAIL("StopLDevice(ADC)", status); End(); return 11; }
+    else M_OK("StopLDevice(ADC)", endl);
+    //
+    End();
+    //
+    return 0;
+}
+
+int ADCRead::FixS()
+{
+    ULONG sCureS;
+    InterlockedExchange(&sCureS, CureS);
+    CureByteNum = CureBIdxFull + sCureS;
+    arrDataIdx[CureArrIdx++] = CureByteNum;
+    if (CureArrIdx>=1000)
+        CureArrIdx=0;
+    return 0;
 }
