@@ -270,7 +270,7 @@ void MainWindow::on_pushButton_16_clicked()
             w = (UINT32)ADC.arrDataIdx[i];
             w1 = (UINT16)w;
             w2 = (UINT16)(w>>16);
-            fprintf_s(file,"%d %x %x\n",i, w2, w1);
+            fprintf_s(file,"%d 0x%llx 0x%lx   %x %x\n",i, ADC.arrDataIdx[i], ADC.arrDataIdx[i], w2, w1);
         }
     } else {
         std::cout << "Нет доступа к файлу!" << endl;
