@@ -24,10 +24,13 @@ public:
     int StopGetData(void);
     int End(void);
     int FixS(void);
+    ULONG64 GetCureByteNum();
+    int WriteToFile2(void);
     //
     int CureVal;
     ULONG databufsize;
     ULONG CureS;
+    ULONG sCureS;
     ULONG64 CureByteNum;
     ULONG64 CureBIdxFull;
     int CureArrIdx;

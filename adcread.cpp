@@ -491,13 +491,15 @@ int ADCRead::StopGetData()
     return 0;
 }
 
-int ADCRead::FixS()
+ULONG64 ADCRead::GetCureByteNum()
 {
-    ULONG sCureS;
     InterlockedExchange(&sCureS, CureS);
     CureByteNum = CureBIdxFull + sCureS;
-    arrDataIdx[CureArrIdx++] = CureByteNum;
-    if (CureArrIdx>=1000)
-        CureArrIdx=0;
+    return CureByteNum;
+}
+
+int ADCRead::WriteToFile2()
+{
+
     return 0;
 }

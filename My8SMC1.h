@@ -22,12 +22,13 @@ public:
 	USMC_State StateZ;
     float SpeedX, SpeedY, SpeedZ;
     int TargetX, TargetY, TargetZ;
+    float mkmX, mkmY, mkmZ;
+    USMC_Parameters PrmsX, PrmsY, PrmsZ;
 private:
 	USMC_Devices DVS;
 	DWORD Dev;
     USMC_State State;
-	USMC_StartParameters StPrms;
-	USMC_Parameters PrmsX, PrmsY, PrmsZ;
+    USMC_StartParameters StPrms;
 	USMC_Parameters *Prms_Ptr;
 	USMC_Mode Mode;
 	USMC_EncoderState EnState;

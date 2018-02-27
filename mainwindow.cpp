@@ -228,7 +228,7 @@ void MainWindow::on_pushButton_12_clicked()
     Standa.GetPrmsAll();
     Standa.GetInfo();
     //
-    MConf.Start(&Standa);
+    MConf.Start(&Standa, &ADC);
 }
 
 void MainWindow::on_pushButton_13_clicked()
@@ -262,22 +262,7 @@ void MainWindow::on_pushButton_16_clicked()
     ADC.StopGetData();
     tmrDeb->stop();
 
-    //char fileName[100] = ; // Путь к файлу для записи
-    FILE* file = fopen("data2.txt", "w");
-    if (file) // если есть доступ к файлу,
-    {
-        DWORD w;
-        WORD w1,w2;
-        for (int i=0;i<ADC.CureArrIdx;i++){
-            w = (UINT32)ADC.arrDataIdx[i];
-            w1 = (UINT16)w;
-            w2 = (UINT16)(w>>16);
-            fprintf_s(file,"%d 0x%llx 0x%lx   %x %x\n",i, ADC.arrDataIdx[i], ADC.arrDataIdx[i], w2, w1);
-        }
-    } else {
-        std::cout << "Нет доступа к файлу!" << endl;
-    }
-    fclose(file);
+    MConf.WriteArrToFile2();
 
     //HANDLE hFile2;
     //Write to file
@@ -288,5 +273,5 @@ void MainWindow::on_pushButton_16_clicked()
 
 void MainWindow::on_pushButton_17_clicked()
 {
-    ADC.FixS();
+    //ADC.FixS();
 }
