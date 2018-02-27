@@ -223,8 +223,10 @@ void MainWindow::on_pushButton_12_clicked()
     //
     Standa.SetSpeedXYZ(MConf.SpeedX, MConf.SpeedY, MConf.SpeedZ);
     //
-    Standa.HomeX();
-    Standa.HomeY();
+    //Standa.HomeX();
+    //Standa.HomeY();
+    Standa.GetPrmsAll();
+    Standa.GetInfo();
     //
     MConf.Start(&Standa);
 }

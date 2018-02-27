@@ -127,3 +127,24 @@ int ModuleConfig::Stop(My8SMC1 *PStanda)
     PStanda->StopZ();
     return 0;
 }
+
+int ModuleConfig::CalcInterpol()
+{
+    StartByteNum;
+    ArrValue[];
+    Freq = 100000;
+    CurePos = StartPos;
+    MkmPerTic =;
+    //Accel
+    CureSpeedTic = StartSpeedTic;
+    //do while
+    NextTicInFq = Freq/CureSpeedTic;
+    for (int f=0;f<NextTicInFq;f++){
+        ByteNum = StartByteNum + f;
+        CalcPos = CurePos;
+        ArrPos[ByteNum] =
+    }
+    CurePos += CureSpeedTic*
+    CureSpeedTic +=
+    //while CureSpeed < Target
+}
