@@ -37,10 +37,11 @@ public:
     int LoadDataFromFile(TInterpStri *, UINT16*);
     int MakeDataFile();
     int CalcInterpol(ULONG *ArrPos, TInterpStri*PStri);
-    int FixStart(ULONG64 ByteNum, int pos, int speed, float acc, float dec, double MkmPerFTic, int divisor);
+    int FixStart(ULONG64 ByteNum, int pos, int speed, float acc, float dec, double MkmPerFTic, int divisor, double y, double z);
     int FixStop(ULONG64 ByteNum, int pos);
     int WriteArrToFile2();
     int CalcParam(TInterpStri *PStri);
+    int WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrValue);
 public:
     //from file
     double TelikW, TelikH, TelikYStep;

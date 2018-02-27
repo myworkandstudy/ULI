@@ -73,7 +73,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     int ystart = PStanda->StateY.CurPos + ystep;
     for (int ypos=ystart; ypos<=MC->TelikH; ypos+=ystep){
         //Move X
-        MC->FixStart(PADC->GetCureByteNum(), PStanda->StateX.CurPos, PStanda->SpeedX, PStanda->PrmsX.AccelT, PStanda->PrmsX.DecelT, MC->mkmX, PStanda->StateX.SDivisor);
+        MC->FixStart(PADC->GetCureByteNum(), PStanda->StateX.CurPos, PStanda->SpeedX, PStanda->PrmsX.AccelT, PStanda->PrmsX.DecelT, MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
         pari = !pari;
         if (pari){
             if (PStanda->MoveXSync(xpos2))
@@ -131,7 +131,7 @@ int ModuleConfig::Stop(My8SMC1 *PStanda)
     return 0;
 }
 
-int ModuleConfig::FixStart(ULONG64 ByteNum, int pos, int speed, float acc, float dec, double MkmPerFTic, int divisor)
+int ModuleConfig::FixStart(ULONG64 ByteNum, int pos, int speed, float acc, float dec, double MkmPerFTic, int divisor, double y, double z)
 {
     arrData[CureArrIdx].StartByteNum = ByteNum;
     arrData[CureArrIdx].StartPos = pos;
@@ -140,7 +140,8 @@ int ModuleConfig::FixStart(ULONG64 ByteNum, int pos, int speed, float acc, float
     arrData[CureArrIdx].DecT = dec;
     arrData[CureArrIdx].MkmPerFTic = MkmPerFTic;
     arrData[CureArrIdx].Divisor = divisor;
-
+    arrData[CureArrIdx].y = y;
+    arrData[CureArrIdx].z = z;
     return 0;
 }
 
@@ -161,8 +162,8 @@ int ModuleConfig::WriteArrToFile2()
     if (file) // если есть доступ к файлу,
     {
         for (int i=0;i<CureArrIdx;i++){
-            fprintf_s(file,"%d 0x%lx\n",i, arrData[i].StartByteNum, arrData[i].EndByteNum, arrData[i].StartPos, arrData[i].EndPos,
-                                            arrData[i].AccT, arrData[i].DecT, arrData[i].MkmPerFTic, arrData[i].Divisor);
+            fprintf_s(file,"%d %lld %lld %ld %ld %lf %lf %lf %d %lf %lf\n", i, arrData[i].StartByteNum, arrData[i].EndByteNum, arrData[i].StartPos, arrData[i].EndPos,
+                                            arrData[i].AccT, arrData[i].DecT, arrData[i].MkmPerFTic, arrData[i].Divisor, arrData[i].y, arrData[i].z);
         }
     } else {
         std::cout << "Нет доступа к файлу!" << endl;
@@ -182,8 +183,8 @@ int ModuleConfig::LoadStriFromFile2()
         int i,read_ok;
         do {
             i = CureArrIdx;
-            read_ok = fscanf_s(file,"%d 0x%lx\n",i, arrData[i].StartByteNum, arrData[i].EndByteNum, arrData[i].StartPos, arrData[i].EndPos,
-                                            arrData[i].AccT, arrData[i].DecT, arrData[i].MkmPerFTic, arrData[i].Divisor);
+            read_ok = fscanf_s(file,"%d %lld %lld %ld %ld %lf %lf %lf %d %lf %lf\n", &i, &arrData[i].StartByteNum, &arrData[i].EndByteNum, &arrData[i].StartPos, &arrData[i].EndPos,
+                               &arrData[i].AccT, &arrData[i].DecT, &arrData[i].MkmPerFTic, &arrData[i].Divisor, &arrData[i].y, &arrData[i].z);
             if (read_ok){
                 CureArrIdx++;
             }
@@ -218,7 +219,7 @@ int ModuleConfig::CalcParam(TInterpStri *PStri)
 
 int ModuleConfig::MakeDataFile()
 {
-    UINT16 *ArrValue;
+    UINT16 *ArrValue = NULL;
     ULONG *ArrPos;    //TInterpStri Stri;
     LoadStriFromFile2();
     FILE* file = fopen("data3.csv", "w"); fclose(file); //create empty file3
@@ -240,9 +241,9 @@ int ModuleConfig::WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrV
     if (file) // если есть доступ к файлу,
     {
         ULONG DataSize = PStri->EndByteNum - PStri->StartByteNum;
-        for (int i=0;i<DataSize;i++){
+        for (UINT i=0;i<DataSize;i++){
             //              x   y  z  val
-            fprintf_s(file,"%l; %d %d %d\n", mArrPos[i], PStri->y, PStri->z, mArrValue[i]);
+            fprintf_s(file,"%ld %d %d %d\n", mArrPos[i], (int)PStri->y, (int)PStri->z, mArrValue[i]);
         }
     } else {
         std::cout << "Нет доступа к файлу!" << endl;
