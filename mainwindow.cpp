@@ -15,6 +15,7 @@
 #include <QtCharts/QValueAxis>
 
 #include <QFileDialog>
+#include <QMessageBox>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -170,7 +171,7 @@ void MainWindow::updateTime()
     ui->label_4->setText(QString::number(Standa.StateY.CurPos));
     ui->label_5->setText(QString::number(Standa.StateZ.CurPos));
     //
-    //!ui->label_6->setText(QString::number(ADC.GetValue0()));
+    ui->label_6->setText(QString::number(ADC.GetValue0()));
     //
     xG+=100;
     if (xG>=32767) {
@@ -217,7 +218,9 @@ void MainWindow::on_pushButton_12_clicked()
 {
     //------------------------------------
     //Load Config from JSON file
-    MConf.Load();
+    if (MConf.Load()){
+        QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось загрузить файлы конфига.\n Нарушена структура или нет файлов.)"));
+    }
     //Set params to Standa Driver
     //Standa.SetAccXYZ(MConf.AccX, MConf.AccY, MConf.AccZ);
     //

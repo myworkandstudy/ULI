@@ -34,9 +34,9 @@ public:
                          int Out_TargetSpeedTic, int Out_StartPos, int Out_EndPos,
                          ULONG64 Out_StartByteNum, ULONG64 Out_EndByteNum,
                          double Out_AccT, double Out_DecT, double Out_MkmPerFTic, int Out_Divisor);*/
-    int LoadDataFromFile(TInterpStri *, UINT16*);
+    int LoadDataFromFile(TInterpStri *, UINT16 *&);
     int MakeDataFile();
-    int CalcInterpol(ULONG *ArrPos, TInterpStri*PStri);
+    int CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file);
     int FixStart(ULONG64 ByteNum, int pos, int speed, float acc, float dec, double MkmPerFTic, int divisor, double y, double z);
     int FixStop(ULONG64 ByteNum, int pos);
     int WriteArrToFile2();

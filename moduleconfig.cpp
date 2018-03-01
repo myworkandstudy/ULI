@@ -20,13 +20,24 @@ int ModuleConfig::Load(void)
     try{
         QString val;
         QFile file;
-        file.setFileName("C:\\Users\\102324\\source\\repos\\ConsoleApplication1\\ConsoleApplication1\\config1.json");
+        file.setFileName("C:\\Users\\102324\\source\\repos\\ConsoleApplication1\\ConsoleApplication1\\settings.json");
         file.open(QIODevice::ReadOnly | QIODevice::Text);
         val = file.readAll();
         file.close();
         QJsonDocument d = QJsonDocument::fromJson(val.toUtf8());
-        qWarning() << d.object()["Telik"].toObject()["W"].toInt();
+        //
+        mkmX = d.object()["MkmFTic"].toObject()["X"].toDouble();
+        mkmY = d.object()["MkmFTic"].toObject()["Y"].toDouble();
+        mkmZ = d.object()["MkmFTic"].toObject()["Z"].toDouble();
 
+        //QString val;
+        //QFile file;
+        file.setFileName("C:\\Users\\102324\\source\\repos\\ConsoleApplication1\\ConsoleApplication1\\config1.json");
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        val = file.readAll();
+        file.close();
+        d = QJsonDocument::fromJson(val.toUtf8());
+        //qWarning() << d.object()["Telik"].toObject()["W"].toInt();
         //
         TelikW = d.object()["Telik"].toObject()["W"].toDouble();
         TelikH = d.object()["Telik"].toObject()["H"].toDouble();
@@ -61,7 +72,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     //Move to start position
     PStanda->MoveX(MC->StartX);
     PStanda->MoveY(MC->StartY);
-    PStanda->MoveZ(MC->StartZ);
+    PStanda->MoveZ(PStanda->StateZ.CurPos);
     //Ожидаем выполнения до целей
     PStanda->WaitDoneAll();
     //if (PStanda->GetInfo()) return 4;
@@ -71,22 +82,34 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     int pari = 0;
     int ystep = (int) MC->TelikYStep;
     int ystart = PStanda->StateY.CurPos + ystep;
+    //PADC->Init();
+    //Sleep(50);
+    PADC->StartGetData();
     for (int ypos=ystart; ypos<=MC->TelikH; ypos+=ystep){
         //Move X
         MC->FixStart(PADC->GetCureByteNum(), PStanda->StateX.CurPos, PStanda->SpeedX, PStanda->PrmsX.AccelT, PStanda->PrmsX.DecelT, MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
         pari = !pari;
         if (pari){
+            //PStanda->StateX.CurPos = xpos2;
+            //Sleep(50);
             if (PStanda->MoveXSync(xpos2))
                 return 1;
         } else {
+            //PStanda->StateX.CurPos = xpos1;
+            //Sleep(60);
             if (PStanda->MoveXSync(xpos1))
                 return 2;
         }
         MC->FixStop(PADC->GetCureByteNum(), PStanda->StateX.CurPos);
         //
+        //PStanda->StateY.CurPos = ypos;
+        //Sleep(5);
         if (PStanda->MoveYSync(ypos))
             return 3;
     }
+    PADC->StopGetData();
+    MC->WriteArrToFile2();
+    MC->MakeDataFile();
     return 0;
     //
     //ModuleConfig *MC = (ModuleConfig*)stk;
@@ -176,19 +199,19 @@ int ModuleConfig::LoadStriFromFile2()
         //ULONG in_pos1, ULONG in_pos2, UINT16 *Out_ArrValue,                                   int Out_TargetSpeedTic, int Out_StartPos, int Out_EndPos,                                   ULONG64 Out_StartByteNum, ULONG64 Out_EndByteNum,                                   double Out_AccT, double Out_DecT, double Out_MkmPerFTic, int Out_Divisor)
 {
     //char fileName[100] = ; // Путь к файлу для записи
-    FILE* file = fopen("data2.txt", "w");
+    FILE* file = fopen("data2.txt", "r");
     if (file) // если есть доступ к файлу,
     {
         CureArrIdx = 0;
-        int i,read_ok;
+        int i,read_ok, dummy;
         do {
             i = CureArrIdx;
-            read_ok = fscanf_s(file,"%d %lld %lld %ld %ld %lf %lf %lf %d %lf %lf\n", &i, &arrData[i].StartByteNum, &arrData[i].EndByteNum, &arrData[i].StartPos, &arrData[i].EndPos,
+            read_ok = fscanf_s(file,"%d %lld %lld %ld %ld %lf %lf %lf %d %lf %lf\n", &dummy, &arrData[i].StartByteNum, &arrData[i].EndByteNum, &arrData[i].StartPos, &arrData[i].EndPos,
                                &arrData[i].AccT, &arrData[i].DecT, &arrData[i].MkmPerFTic, &arrData[i].Divisor, &arrData[i].y, &arrData[i].z);
-            if (read_ok){
+            if (read_ok>0){
                 CureArrIdx++;
             }
-        } while (read_ok);
+        } while (read_ok>0);
     } else {
         std::cout << "Нет доступа к файлу!" << endl;
     }
@@ -196,10 +219,32 @@ int ModuleConfig::LoadStriFromFile2()
     return 0;
 }
 
-int ModuleConfig::LoadDataFromFile(TInterpStri *PStri, UINT16 *out_arrData)
+int ModuleConfig::LoadDataFromFile(TInterpStri *PStri, UINT16 *&out_arrData)
 {
     //
-    out_arrData = NULL;
+    HANDLE hFile;
+    //Open
+    hFile = CreateFileA("data.dat", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    //if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
+    //else M_OK("CreateFile(data.dat)", endl);
+    //Seek
+    DWORD dwPtr = SetFilePointer( hFile, PStri->StartByteNum, NULL, FILE_BEGIN );
+    if (dwPtr == INVALID_SET_FILE_POINTER) // Test for failure
+    {
+        DWORD dwError = GetLastError() ;// Obtain the error code.
+        return (int)dwError;
+    }
+    //Read
+    ULONG ByteCount = PStri->EndByteNum - PStri->StartByteNum;
+    out_arrData = new UINT16 [ByteCount];
+    DWORD dwTemp;
+    ReadFile(hFile, out_arrData, ByteCount, &dwTemp, NULL);
+    if(ByteCount != dwTemp) {
+        CloseHandle(hFile);
+        return 2;
+    }
+    CloseHandle(hFile);
+    //out_arrData = out_arr;
     return 0;
 }
 
@@ -220,18 +265,24 @@ int ModuleConfig::CalcParam(TInterpStri *PStri)
 int ModuleConfig::MakeDataFile()
 {
     UINT16 *ArrValue = NULL;
-    ULONG *ArrPos;    //TInterpStri Stri;
-    LoadStriFromFile2();
-    FILE* file = fopen("data3.csv", "w"); fclose(file); //create empty file3
+    //ULONG *ArrPos;    //TInterpStri Stri;
+    //LoadStriFromFile2();
+    FILE* file = fopen("data3.csv", "w"); //create empty file3
+    if (!file) {
+        qWarning("Не удалось создать файл 3");
+        return 1;
+    }
     for (int i=0;i<CureArrIdx;i++){//цикл по строкам
         LoadDataFromFile(&arrData[i], ArrValue);
         CalcParam(&arrData[i]);
-        ULONG DataSize = arrData[i].EndByteNum - arrData[i].StartByteNum;
-        ArrPos = new ULONG[DataSize];//Make Arr
-        CalcInterpol(ArrPos, &arrData[i]);
-        WriteToFile3(&arrData[i], ArrPos, ArrValue);
-        delete [] ArrPos;//Del Arr
+        //ULONG DataSize = arrData[i].EndByteNum - arrData[i].StartByteNum;
+        //ArrPos = new ULONG[DataSize];//Make Arr
+        CalcInterpolAndWrite(ArrValue, &arrData[i], file);
+        //WriteToFile3(&arrData[i], ArrPos, ArrValue);
+        //delete [] ArrPos;//Del Arr
+        delete [] ArrValue;
     }
+    fclose(file);
     return 0;
 }
 
@@ -243,7 +294,7 @@ int ModuleConfig::WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrV
         ULONG DataSize = PStri->EndByteNum - PStri->StartByteNum;
         for (UINT i=0;i<DataSize;i++){
             //              x   y  z  val
-            fprintf_s(file,"%ld %d %d %d\n", mArrPos[i], (int)PStri->y, (int)PStri->z, mArrValue[i]);
+            fprintf_s(file,"%ld; %d; %d; %d\n", mArrPos[i], (int)PStri->y, (int)PStri->z, mArrValue[i]);
         }
     } else {
         std::cout << "Нет доступа к файлу!" << endl;
@@ -252,7 +303,7 @@ int ModuleConfig::WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrV
     return 0;
 }
 
-int ModuleConfig::CalcInterpol(ULONG *ArrPos, TInterpStri*PStri)
+int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
 {
     ULONG CurePos = PStri->StartPos;
     int CureSpeedTic = (PStri->TargetSpeedTic < MinSpeedFTic ? MinSpeedFTic : PStri->TargetSpeedTic);
@@ -264,7 +315,8 @@ int ModuleConfig::CalcInterpol(ULONG *ArrPos, TInterpStri*PStri)
         do{
             NextTicInFq = Freq/CureSpeedTic;
             for (UINT f=0;f<NextTicInFq;f++){
-                ArrPos[ByteNum + f] = CurePos;
+                fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[ByteNum + f]);
+                //ArrPos[ByteNum + f] = CurePos;
             }
             CurePos += 1;//MkmPerTic;
             ByteNum += NextTicInFq;
@@ -278,7 +330,7 @@ int ModuleConfig::CalcInterpol(ULONG *ArrPos, TInterpStri*PStri)
     do{
         NextTicInFq = Freq/CureSpeedTic;
         for (UINT f=0;f<NextTicInFq;f++){
-            ArrPos[ByteNum + f] = CurePos;
+            fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[ByteNum + f]);
         }
         CurePos += 1;//MkmPerTic;
         ByteNum += NextTicInFq;
@@ -288,7 +340,7 @@ int ModuleConfig::CalcInterpol(ULONG *ArrPos, TInterpStri*PStri)
         do{
             NextTicInFq = Freq/CureSpeedTic;
             for (UINT f=0;f<NextTicInFq;f++){
-                ArrPos[ByteNum + f] = CurePos;
+                fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[ByteNum + f]);
             }
             CurePos += 1;//MkmPerTic;
             ByteNum += NextTicInFq;

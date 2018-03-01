@@ -35,7 +35,12 @@ ULONG   status;
 
 ADCRead::ADCRead()
 {
+    Init();
+}
 
+ADCRead::~ADCRead()
+{
+    End();
 }
 
 CREATEFUNCPTR CreateInstance;
@@ -59,7 +64,7 @@ ULONG WINAPI ServiceThread(PVOID ctx)
 
     InterlockedExchange(&myADC->CureS, *sync);
     ULONG fl2, fl1 = fl2 = (myADC->CureS <= halfbuffer) ? 0 : 1;  // Настроили флаги
-    void *tmp, *tmp1;
+    void *tmp1;//*tmp
     ULONG BytesWritten;
     myADC->CureByteNum = 0;
 
@@ -486,7 +491,7 @@ int ADCRead::StopGetData()
     if (status != L_SUCCESS) { M_FAIL("StopLDevice(ADC)", status); End(); return 11; }
     else M_OK("StopLDevice(ADC)", endl);
     //
-    End();
+    //End();
     //
     return 0;
 }

@@ -18,6 +18,7 @@ class ADCRead
 {
 public:
     ADCRead();
+    ~ADCRead();
     int Init(void);
     ULONG GetValue0(void);
     int StartGetData(void);
