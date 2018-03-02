@@ -227,6 +227,10 @@ int ModuleConfig::LoadDataFromFile(TInterpStri *PStri, UINT16 *&out_arrData)
     hFile = CreateFileA("data.dat", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     //if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
     //else M_OK("CreateFile(data.dat)", endl);
+    if (hFile == INVALID_HANDLE_VALUE){
+        DWORD dwError = GetLastError() ;// Obtain the error code.
+        return (int)dwError;
+    }
     //Seek
     DWORD dwPtr = SetFilePointer( hFile, PStri->StartByteNum, NULL, FILE_BEGIN );
     if (dwPtr == INVALID_SET_FILE_POINTER) // Test for failure
@@ -306,7 +310,7 @@ int ModuleConfig::WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrV
 int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
 {
     ULONG CurePos = PStri->StartPos;
-    int CureSpeedTic = (PStri->TargetSpeedTic < MinSpeedFTic ? MinSpeedFTic : PStri->TargetSpeedTic);
+    int CureSpeedTic = PStri->TargetSpeedTic;//(PStri->TargetSpeedTic < MinSpeedFTic ? MinSpeedFTic : PStri->TargetSpeedTic);
     int ByteNum = 0;
     ULONG NextTicInFq;
     double TargetPosM;

@@ -389,18 +389,18 @@ int ADCRead::Init(void)
     multi = 8;
     fsize = multi*(pages / 2)*IrqStep; // размер файла
 
-    hFile = CreateFileA("data.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
-    if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
-    else M_OK("CreateFile(data.dat)", endl);
+    //hFile = CreateFileA("data.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
+    //if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
+    //else M_OK("CreateFile(data.dat)", endl);
 
     //поток 32бит*100 000Гц== 3.2Мбит/с(~400КБ/с). У ЖД скорость записи от 50МБ/с (то есть нам достаточно, без задержек)
-    hMap = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, fsize*pointsize, NULL);
-    if (hMap == INVALID_HANDLE_VALUE) { M_FAIL("CreateFileMapping(data.dat)", GetLastError()); End(); return 11; }
-    else M_OK("CreateFileMapping(data.dat)", endl);
+//    hMap = CreateFileMapping(hFile, NULL, PAGE_READWRITE, 0, fsize*pointsize, NULL);
+//    if (hMap == INVALID_HANDLE_VALUE) { M_FAIL("CreateFileMapping(data.dat)", GetLastError()); End(); return 11; }
+//    else M_OK("CreateFileMapping(data.dat)", endl);
 
-    fdata = MapViewOfFile(hMap, FILE_MAP_WRITE, 0, 0, 0);
-    if (fdata == NULL) { M_FAIL("MapViewOfFile(data.dat)", GetLastError()); End(); return 11; }
-    else M_OK("MapViewOfFile(data.dat)", endl);
+//    fdata = MapViewOfFile(hMap, FILE_MAP_WRITE, 0, 0, 0);
+//    if (fdata == NULL) { M_FAIL("MapViewOfFile(data.dat)", GetLastError()); End(); return 11; }
+//    else M_OK("MapViewOfFile(data.dat)", endl);
 
     complete = 0;
     stop = 0;
@@ -424,6 +424,13 @@ ULONG ADCRead::GetValue0()
 int ADCRead::StartGetData()
 {
     CureArrIdx = 0;
+
+    if (hFile) CloseHandle(hFile);
+
+    hFile = CreateFileA("data.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
+    else M_OK("CreateFile(data.dat)", endl);
+
     status = pI->StartLDevice(); // Запускаем сбор в драйвере
     if (status != L_SUCCESS) { M_FAIL("StartLDevice(ADC)", status); End(); return 11; }
     else M_OK("StartLDevice(ADC)", endl);
@@ -477,7 +484,7 @@ int ADCRead::End()
     if (hMap) CloseHandle(hMap);
     if (hFile) CloseHandle(hFile);
 
-    if (fdata1) UnmapViewOfFile(fdata1);
+    //if (fdata1) UnmapViewOfFile(fdata1);
     if (hMap1) CloseHandle(hMap1);
     if (hFile1) CloseHandle(hFile1);
 
@@ -490,6 +497,8 @@ int ADCRead::StopGetData()
     status = pI->StopLDevice(); // Остановили сбор
     if (status != L_SUCCESS) { M_FAIL("StopLDevice(ADC)", status); End(); return 11; }
     else M_OK("StopLDevice(ADC)", endl);
+
+    if (hFile) CloseHandle(hFile);
     //
     //End();
     //

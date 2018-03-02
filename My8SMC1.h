@@ -24,6 +24,10 @@ public:
     int TargetX, TargetY, TargetZ;
     float mkmX, mkmY, mkmZ;
     USMC_Parameters PrmsX, PrmsY, PrmsZ;
+    USMC_Mode ModeX, ModeY, ModeZ;
+    int DevX = 0;
+    int DevY = 1;
+    int DevZ = 2;
 private:
 	USMC_Devices DVS;
 	DWORD Dev;
@@ -33,12 +37,12 @@ private:
 	USMC_Mode Mode;
 	USMC_EncoderState EnState;
 	float Speed = 2000.0f;
-    int DevX = 0;
-    int DevY = 1;
-    int DevZ = 2;
+
 public:
 	// Init
 	int Init();
+    //
+    int SetMode(DWORD Dev, USMC_Mode Mode);
 	// MoveX
 	int MoveX(int DestPos);
 	int MoveY(int DestPos);

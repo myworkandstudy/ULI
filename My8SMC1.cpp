@@ -21,7 +21,7 @@ int My8SMC1::Init()
 	//Z
 	Dev = DevZ;
 	if (USMC_GetMode(Dev, Mode))
-		return TRUE;
+        return TRUE;
 	Mode.EncoderEn = TRUE;
 	Mode.RotTrOp = FALSE;
 	Mode.ResetRT = TRUE;
@@ -32,6 +32,7 @@ int My8SMC1::Init()
 	Mode.ResetD = FALSE;
 	if (USMC_SetMode(Dev, Mode))
 		return TRUE;
+    ModeZ=Mode;
 	//X
 	Dev = DevX;
 	if (USMC_GetMode(Dev, Mode))
@@ -47,6 +48,7 @@ int My8SMC1::Init()
 	Mode.ResetD = FALSE;
 	if (USMC_SetMode(Dev, Mode))
 		return TRUE;
+    ModeX=Mode;
 	//Y
 	Dev = DevY;
 	if (USMC_GetMode(Dev, Mode))
@@ -61,11 +63,16 @@ int My8SMC1::Init()
 	Mode.ResetD = FALSE;
 	if (USMC_SetMode(Dev, Mode))
 		return TRUE;
-	//
+    ModeY=Mode;
+    //
 	GetPrmsAll();
 	return 0;
 }
 
+int My8SMC1::SetMode(DWORD Dev, USMC_Mode Mode)
+{
+    return USMC_SetMode(Dev, Mode);
+}
 
 // MoveX
 int My8SMC1::MoveX(int DestPos)
@@ -161,6 +168,13 @@ int My8SMC1::GetInfo(void)
     if (USMC_GetState(DevY, StateY))
         return TRUE;
     if (USMC_GetState(DevZ, StateZ))
+        return TRUE;
+    //
+    if (USMC_GetMode(DevX, ModeX))
+        return TRUE;
+    if (USMC_GetMode(DevY, ModeY))
+        return TRUE;
+    if (USMC_GetMode(DevZ, ModeZ))
         return TRUE;
 	return 0;
 }
@@ -314,6 +328,7 @@ int My8SMC1::MoveDev(DWORD Dev, int DestPos)
 	if (USMC_GetStartParameters(Dev, StPrms))
 		return TRUE;
 	StPrms.SlStart = TRUE;
+    StPrms.SDivisor = 8;
     Speed = GetSpeedByDev(Dev);
 	if (USMC_Start(Dev, DestPos, Speed, StPrms))
 		return TRUE;

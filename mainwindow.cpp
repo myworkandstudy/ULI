@@ -35,6 +35,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //------------------------------------
     ui->setupUi(this);
+    //
+    ui->label_10->hide();
+    ui->label_11->hide();
+    ui->label_12->hide();
+    ui->label_13->hide();
+    ui->label_14->hide();
+    ui->label_15->hide();
+
 
     //![1]
         //QLineSeries *series0 = new QLineSeries();
@@ -167,6 +175,17 @@ void MainWindow::updateTime()
 {
     Standa.GetInfo();
     //
+    ui->label_10->setVisible(Standa.StateX.Trailer1);
+    ui->label_11->setVisible(Standa.StateX.Trailer2);
+    ui->label_12->setVisible(Standa.StateY.Trailer1);
+    ui->label_13->setVisible(Standa.StateY.Trailer2);
+    ui->label_14->setVisible(Standa.StateZ.Trailer1);
+    ui->label_15->setVisible(Standa.StateZ.Trailer2);
+    //
+    ui->pushButton_18->setChecked(!Standa.ModeX.ResetD);
+    ui->pushButton_19->setChecked(!Standa.ModeY.ResetD);
+    ui->pushButton_20->setChecked(!Standa.ModeZ.ResetD);
+    //
     ui->label_3->setText(QString::number(Standa.StateX.CurPos));
     ui->label_4->setText(QString::number(Standa.StateY.CurPos));
     ui->label_5->setText(QString::number(Standa.StateZ.CurPos));
@@ -179,6 +198,7 @@ void MainWindow::updateTime()
         series0->clear();
     }
     //!series0->append(xG, ADC.GetValue0());
+    //!
 }
 
 void MainWindow::updateTimeDeb()
@@ -277,4 +297,24 @@ void MainWindow::on_pushButton_16_clicked()
 void MainWindow::on_pushButton_17_clicked()
 {
     //ADC.FixS();
+    ui->label_10->show();
+}
+
+void MainWindow::on_pushButton_18_clicked()
+{
+    //Standa.StateX.Power
+    Standa.ModeX.ResetD = !Standa.ModeX.ResetD;
+    Standa.SetMode(Standa.DevX, Standa.ModeX);
+}
+
+void MainWindow::on_pushButton_19_clicked()
+{
+    Standa.ModeY.ResetD = !Standa.ModeY.ResetD;
+    Standa.SetMode(Standa.DevY, Standa.ModeY);
+}
+
+void MainWindow::on_pushButton_20_clicked()
+{
+    Standa.ModeZ.ResetD = !Standa.ModeZ.ResetD;
+    Standa.SetMode(Standa.DevZ, Standa.ModeZ);
 }
