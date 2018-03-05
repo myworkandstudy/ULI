@@ -37,13 +37,15 @@ private:
 	USMC_Mode Mode;
 	USMC_EncoderState EnState;
 	float Speed = 2000.0f;
+    float HomeSpeed = 100.0f;
 
 public:
 	// Init
 	int Init();
     //
     int SetMode(DWORD Dev, USMC_Mode Mode);
-	// MoveX
+    // Move
+    int MoveDevSync(DWORD Dev, int DestPos);
 	int MoveX(int DestPos);
 	int MoveY(int DestPos);
 	int MoveZ(int DestPos);

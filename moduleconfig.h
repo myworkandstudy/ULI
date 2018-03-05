@@ -51,7 +51,7 @@ public:
     float mkmX, mkmY, mkmZ;
     //ca
 private:
-    ULONG Freq = 100000;
+    ULONG Freq = 50000;//100000;
     int MinSpeedFTic = 300, MaxSpeedFTic = 5000;
     //!
     double MkmPerTic, MkmPerMs;

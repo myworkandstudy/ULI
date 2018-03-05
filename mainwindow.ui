@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>972</width>
-    <height>651</height>
+    <width>1063</width>
+    <height>677</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>961</width>
-      <height>591</height>
+      <width>1041</width>
+      <height>651</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -65,7 +65,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>571</width>
+           <width>641</width>
            <height>474</height>
           </rect>
          </property>
@@ -308,6 +308,59 @@
               <string>Z</string>
              </property>
             </widget>
+            <widget class="QSlider" name="verticalSlider_2">
+             <property name="geometry">
+              <rect>
+               <x>600</x>
+               <y>40</y>
+               <width>20</width>
+               <height>121</height>
+              </rect>
+             </property>
+             <property name="maximum">
+              <number>5000</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="invertedAppearance">
+              <bool>false</bool>
+             </property>
+            </widget>
+            <widget class="QLabel" name="label_16">
+             <property name="geometry">
+              <rect>
+               <x>520</x>
+               <y>40</y>
+               <width>47</width>
+               <height>13</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Speed</string>
+             </property>
+            </widget>
+            <widget class="QSpinBox" name="spinBox_4">
+             <property name="geometry">
+              <rect>
+               <x>510</x>
+               <y>70</y>
+               <width>71</width>
+               <height>41</height>
+              </rect>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>20</pointsize>
+              </font>
+             </property>
+             <property name="minimum">
+              <number>-999999999</number>
+             </property>
+             <property name="maximum">
+              <number>999999999</number>
+             </property>
+            </widget>
            </widget>
           </item>
           <item>
@@ -325,6 +378,9 @@
              <set>Qt::AlignCenter</set>
             </property>
             <widget class="QPushButton" name="pushButton_6">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="geometry">
               <rect>
                <x>180</x>
@@ -364,6 +420,9 @@
              </property>
             </widget>
             <widget class="QPushButton" name="pushButton_9">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="geometry">
               <rect>
                <x>360</x>
@@ -383,7 +442,7 @@
         <widget class="QLineEdit" name="lineEdit">
          <property name="geometry">
           <rect>
-           <x>600</x>
+           <x>690</x>
            <y>170</y>
            <width>113</width>
            <height>20</height>
@@ -396,7 +455,7 @@
         <widget class="QPushButton" name="pushButton_2">
          <property name="geometry">
           <rect>
-           <x>620</x>
+           <x>710</x>
            <y>380</y>
            <width>75</width>
            <height>23</height>
@@ -409,7 +468,7 @@
         <widget class="QSlider" name="verticalSlider">
          <property name="geometry">
           <rect>
-           <x>650</x>
+           <x>740</x>
            <y>210</y>
            <width>19</width>
            <height>160</height>
@@ -428,7 +487,7 @@
         <widget class="QPushButton" name="pushButton_12">
          <property name="geometry">
           <rect>
-           <x>610</x>
+           <x>700</x>
            <y>20</y>
            <width>101</width>
            <height>51</height>
@@ -441,7 +500,7 @@
         <widget class="QPushButton" name="pushButton_13">
          <property name="geometry">
           <rect>
-           <x>610</x>
+           <x>700</x>
            <y>80</y>
            <width>101</width>
            <height>51</height>
@@ -454,7 +513,7 @@
         <widget class="QPushButton" name="pushButton_14">
          <property name="geometry">
           <rect>
-           <x>620</x>
+           <x>710</x>
            <y>450</y>
            <width>75</width>
            <height>23</height>
@@ -467,7 +526,7 @@
         <widget class="QPushButton" name="pushButton_15">
          <property name="geometry">
           <rect>
-           <x>620</x>
+           <x>710</x>
            <y>480</y>
            <width>75</width>
            <height>23</height>
@@ -480,7 +539,7 @@
         <widget class="QPushButton" name="pushButton_16">
          <property name="geometry">
           <rect>
-           <x>620</x>
+           <x>710</x>
            <y>510</y>
            <width>75</width>
            <height>23</height>
@@ -493,7 +552,7 @@
         <widget class="QPushButton" name="pushButton_17">
          <property name="geometry">
           <rect>
-           <x>530</x>
+           <x>620</x>
            <y>500</y>
            <width>75</width>
            <height>23</height>
@@ -597,7 +656,7 @@
           </font>
          </property>
          <property name="title">
-          <string>Положение оси X, мкм:</string>
+          <string>Положение оси X, имп:</string>
          </property>
          <widget class="QLabel" name="label_3">
           <property name="geometry">
@@ -687,7 +746,7 @@
           </font>
          </property>
          <property name="title">
-          <string>Положение оси Y, мкм:</string>
+          <string>Положение оси Y, имп:</string>
          </property>
          <widget class="QLabel" name="label_4">
           <property name="geometry">
@@ -780,7 +839,7 @@
           </font>
          </property>
          <property name="title">
-          <string>Положение оси Z, мкм:</string>
+          <string>Положение оси Z, имп:</string>
          </property>
          <widget class="QLabel" name="label_5">
           <property name="geometry">

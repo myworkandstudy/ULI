@@ -28,7 +28,7 @@ public:
     ULONG64 GetCureByteNum();
     int WriteToFile2(void);
     //
-    int CureVal;
+    ULONG CureVal;
     ULONG databufsize;
     ULONG CureS;
     ULONG sCureS;
@@ -36,6 +36,7 @@ public:
     ULONG64 CureBIdxFull;
     int CureArrIdx;
     ULONG64 arrDataIdx[1000];
+    int IsStarted;
 };
 
 #endif // ADCREAD_H

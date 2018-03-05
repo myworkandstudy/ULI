@@ -35,6 +35,7 @@ ULONG   status;
 
 ADCRead::ADCRead()
 {
+    IsStarted = 0;
     Init();
 }
 
@@ -68,7 +69,7 @@ ULONG WINAPI ServiceThread(PVOID ctx)
     ULONG BytesWritten;
     myADC->CureByteNum = 0;
 
-    ULONG i=0;
+    ULONG i=0, val;
     while (1)
     {
         while (fl2 == fl1)
@@ -77,6 +78,10 @@ ULONG WINAPI ServiceThread(PVOID ctx)
                 return 0;
             InterlockedExchange(&myADC->CureS, *sync);
             fl2 = (myADC->CureS <= halfbuffer) ? 0 : 1; // Ждем заполнения половинки буфера
+            //
+            tmp1 = ((char*)data_rbuf + (myADC->CureS)*pointsize);
+            val = ((UINT16*)tmp1)[0];
+            InterlockedExchange(&myADC->CureVal, val);
             //
             if (InterlockedCompareExchange(&stop, 1, 1)){
                 //
@@ -87,6 +92,7 @@ ULONG WINAPI ServiceThread(PVOID ctx)
         }
         //tmp = ((char *)fdata + (halfbuffer*i)*pointsize);                     // Настраиваем указатель в файле
         tmp1 = ((char*)data_rbuf + (halfbuffer*fl1)*pointsize);                   // Настраиваем указатель в кольцевом буфере
+        //myADC->CureVal = ((UINT16*)tmp1)[0];
         myADC->CureBIdxFull += ((2*halfbuffer*fl1)*pointsize);
         //memcpy(tmp, tmp1, halfbuffer*pointsize);   // Записываем данные в файл
         WriteFile(hFile, tmp1, halfbuffer*pointsize, &BytesWritten, NULL);
@@ -418,12 +424,17 @@ int ADCRead::Init(void)
 
 ULONG ADCRead::GetValue0()
 {
-    return GetVal();
+    if (IsStarted){
+        return CureVal;
+    } else {
+        return GetVal();
+    }
 }
 
 int ADCRead::StartGetData()
 {
     CureArrIdx = 0;
+    IsStarted = 1;
 
     if (hFile) CloseHandle(hFile);
 
@@ -485,15 +496,17 @@ int ADCRead::End()
     if (hFile) CloseHandle(hFile);
 
     //if (fdata1) UnmapViewOfFile(fdata1);
-    if (hMap1) CloseHandle(hMap1);
-    if (hFile1) CloseHandle(hFile1);
+    //if (hMap1) CloseHandle(hMap1);
+    //if (hFile1) CloseHandle(hFile1);
 
-    cout << ".......... Exit." << endl;
+    //cout << ".......... Exit." << endl;
     return 0;
 }
 
 int ADCRead::StopGetData()
 {
+    IsStarted = 0;
+
     status = pI->StopLDevice(); // Остановили сбор
     if (status != L_SUCCESS) { M_FAIL("StopLDevice(ADC)", status); End(); return 11; }
     else M_OK("StopLDevice(ADC)", endl);

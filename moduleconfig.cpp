@@ -270,6 +270,7 @@ int ModuleConfig::MakeDataFile()
 {
     UINT16 *ArrValue = NULL;
     //ULONG *ArrPos;    //TInterpStri Stri;
+    WriteArrToFile2();
     //LoadStriFromFile2();
     FILE* file = fopen("data3.csv", "w"); //create empty file3
     if (!file) {
@@ -322,7 +323,11 @@ int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE
                 fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[ByteNum + f]);
                 //ArrPos[ByteNum + f] = CurePos;
             }
-            CurePos += 1;//MkmPerTic;
+            if (PStri->StartPos < PStri->EndPos){
+                CurePos += 1;//MkmPerTic;
+            } else {
+                CurePos -= 1;
+            }
             ByteNum += NextTicInFq;
             CureSpeedTic += 1;
         } while (CureSpeedTic < PStri->TargetSpeedTic);
@@ -336,9 +341,19 @@ int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE
         for (UINT f=0;f<NextTicInFq;f++){
             fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[ByteNum + f]);
         }
-        CurePos += 1;//MkmPerTic;
         ByteNum += NextTicInFq;
-    } while (CurePos < TargetPosM);
+        if (PStri->StartPos < PStri->EndPos){
+            CurePos += 1;//MkmPerTic;
+            if (CurePos > TargetPosM){
+                break;
+            }
+        } else {
+            CurePos -= 1;
+            if (CurePos < TargetPosM){
+                break;
+            }
+        }
+    } while (1);
     //---Decel---
     if (PStri->TargetSpeedTic > MinSpeedFTic){
         do{
@@ -346,9 +361,19 @@ int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE
             for (UINT f=0;f<NextTicInFq;f++){
                 fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[ByteNum + f]);
             }
-            CurePos += 1;//MkmPerTic;
             ByteNum += NextTicInFq;
-        } while (CurePos < PStri->EndPos);
+            if (PStri->StartPos < PStri->EndPos){
+                CurePos += 1;//MkmPerTic;
+                if (CurePos > PStri->EndPos){
+                    break;
+                }
+            } else {
+                CurePos -= 1;
+                if (CurePos < PStri->EndPos){
+                    break;
+                }
+            }
+        } while (1);
     }
     return 0;
 }

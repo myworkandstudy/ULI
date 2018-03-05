@@ -141,17 +141,23 @@ void MainWindow::on_verticalSlider_valueChanged(int value)
 
 void MainWindow::on_pushButton_7_clicked()
 {
-    Standa.HomeX();
+    if (QMessageBox::warning(0,tr("Подтверждение"),tr("Подтвердите действие"),QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok){
+        Standa.HomeX();
+    }
 }
 
 void MainWindow::on_pushButton_8_clicked()
 {
-    Standa.HomeY();
+    if (QMessageBox::warning(0,tr("Подтверждение"),tr("Подтвердите действие"),QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok){
+        Standa.HomeY();
+    }
 }
 
 void MainWindow::on_pushButton_9_clicked()
 {
-    Standa.HomeZ();
+    if (QMessageBox::warning(0,tr("Подтверждение"),tr("Подтвердите действие"),QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok){
+        Standa.HomeZ();
+    }
 }
 
 void MainWindow::on_pushButton_10_clicked()
@@ -190,7 +196,8 @@ void MainWindow::updateTime()
     ui->label_4->setText(QString::number(Standa.StateY.CurPos));
     ui->label_5->setText(QString::number(Standa.StateZ.CurPos));
     //
-    ui->label_6->setText(QString::number(ADC.GetValue0()));
+    ULONG val = ADC.GetValue0();
+    ui->label_6->setText(QString::number(val));
     //
     xG+=100;
     if (xG>=32767) {
@@ -297,7 +304,9 @@ void MainWindow::on_pushButton_16_clicked()
 void MainWindow::on_pushButton_17_clicked()
 {
     //ADC.FixS();
-    ui->label_10->show();
+    //ui->label_10->show();
+    int ret = QMessageBox::information(0,tr("information"),tr("No tabs for adding"),QMessageBox::Ok|QMessageBox::Cancel);
+    ret = 0;
 }
 
 void MainWindow::on_pushButton_18_clicked()
@@ -317,4 +326,9 @@ void MainWindow::on_pushButton_20_clicked()
 {
     Standa.ModeZ.ResetD = !Standa.ModeZ.ResetD;
     Standa.SetMode(Standa.DevZ, Standa.ModeZ);
+}
+
+void MainWindow::on_pushButton_6_clicked()
+{
+
 }

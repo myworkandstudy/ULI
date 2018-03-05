@@ -88,6 +88,20 @@ int My8SMC1::MoveZ(int DestPos)
 	return MoveDev(DevZ, DestPos);
 }
 
+int My8SMC1::MoveDevSync(DWORD Dev, int DestPos)
+{
+    MoveDev(Dev, DestPos);
+    while(DestPos!=State.CurPos){
+        if (USMC_GetState(Dev, State))
+            return TRUE;
+        if ((State.AReset==0) || (State.Trailer1) || (State.Trailer2)){
+            break;
+        }
+        Sleep(10);
+    }
+    return 0;
+}
+
 int My8SMC1::MoveXSync(int DestPos)
 {
     //if (DestPos==0) DestPos = 3;
@@ -377,17 +391,16 @@ int My8SMC1::StopZ(void)
 
 int My8SMC1::HomeDev(DWORD Dev)
 {
+    SetSpeedXYZ(HomeSpeed,HomeSpeed,HomeSpeed);//!
 	//phase 1
 	do {
 		if (USMC_GetState(Dev, State))
 			return TRUE;
 		if (State.Trailer1) {
-			MoveDev(Dev, State.CurPos + 100);
-			Sleep(100);
+            MoveDevSync(Dev, State.CurPos + 100);
 		}
 		if (State.Trailer2) {
-			MoveDev(Dev, State.CurPos - 100);
-			Sleep(100);
+            MoveDevSync(Dev, State.CurPos - 100);
 		}
 	} while (State.Trailer1 || State.Trailer2);
 	//phase 2
@@ -395,8 +408,7 @@ int My8SMC1::HomeDev(DWORD Dev)
 		if (USMC_GetState(Dev, State))
 			return TRUE;
 		if (!State.Trailer1) {
-			MoveDev(Dev, State.CurPos - 100);
-			Sleep(100);
+            MoveDevSync(Dev, State.CurPos - 100);
 		}
 	} while (!State.Trailer1);
 	//
@@ -404,15 +416,14 @@ int My8SMC1::HomeDev(DWORD Dev)
 		if (USMC_GetState(Dev, State))
 			return TRUE;
 		if (State.Trailer1) {
-			MoveDev(Dev, State.CurPos + 1);
-			Sleep(10);
+            MoveDevSync(Dev, State.CurPos + 1);
 		}
 	} while (State.Trailer1);
-	//set 0
-	Sleep(10);
-	int HomeZero = 0;
+    //set 0
+    int HomeZero = 0;
 	if (USMC_SetCurrentPosition(Dev, HomeZero))
 		return TRUE;	
+    MoveDevSync(Dev, 0);
 	//flash
 	Sleep(10);
 	if (USMC_SaveParametersToFlash(Dev))
