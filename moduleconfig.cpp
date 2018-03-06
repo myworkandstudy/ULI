@@ -13,6 +13,7 @@ ULONG WINAPI SynThread(PVOID /*Context*/);
 ModuleConfig::ModuleConfig()
 {
     hThread = NULL;
+    mystate = 1;
 }
 
 int ModuleConfig::Load(void)
@@ -20,7 +21,7 @@ int ModuleConfig::Load(void)
     try{
         QString val;
         QFile file;
-        file.setFileName("C:\\Users\\102324\\source\\repos\\ConsoleApplication1\\ConsoleApplication1\\settings.json");
+        file.setFileName(SETTINGSFILENAME);//C:\\Users\\102324\\source\\repos\\ConsoleApplication1\\ConsoleApplication1\\settings.json");
         file.open(QIODevice::ReadOnly | QIODevice::Text);
         val = file.readAll();
         file.close();
@@ -30,13 +31,21 @@ int ModuleConfig::Load(void)
         mkmY = d.object()["MkmFTic"].toObject()["Y"].toDouble();
         mkmZ = d.object()["MkmFTic"].toObject()["Z"].toDouble();
 
+        ConfigFilePath = d.object()["SavedData"].toObject()["ConfigFilePath"].toString().toStdString();
+        if (d.isEmpty() || d.isNull()) {
+            return 4;
+        }
+
         //QString val;
         //QFile file;
-        file.setFileName("C:\\Users\\102324\\source\\repos\\ConsoleApplication1\\ConsoleApplication1\\config1.json");
+        file.setFileName(QString::fromStdString(ConfigFilePath));//C:\\Users\\102324\\source\\repos\\ConsoleApplication1\\ConsoleApplication1\\config1.json");
         file.open(QIODevice::ReadOnly | QIODevice::Text);
         val = file.readAll();
         file.close();
         d = QJsonDocument::fromJson(val.toUtf8());
+        if (d.isEmpty() || d.isNull()) {
+            return 4;
+        }
         //qWarning() << d.object()["Telik"].toObject()["W"].toInt();
         //
         TelikW = d.object()["Telik"].toObject()["W"].toDouble();
@@ -60,6 +69,33 @@ int ModuleConfig::Load(void)
     return 0;
 }
 
+int ModuleConfig::Save(void)
+{
+    try{
+        QString val;
+        QFile jsonFile;
+        jsonFile.setFileName(SETTINGSFILENAME);
+        jsonFile.open(QIODevice::ReadOnly | QIODevice::Text);
+        val = jsonFile.readAll();
+        jsonFile.close();
+        QJsonDocument d = QJsonDocument::fromJson(val.toUtf8());
+        if (d.isEmpty() || d.isNull()) {
+            return 4;
+        }
+        jsonFile.open(QFile::WriteOnly);
+        d.object()["SavedData"].toObject()["ConfigFilePath"] = QString::fromStdString(ConfigFilePath);
+        QJsonObject root_obj = d.object();
+        QJsonObject o = root_obj["SavedData"].toObject();
+        o["ConfigFilePath"] = QString::fromStdString(ConfigFilePath);
+        root_obj["SavedData"] = o;
+        d.setObject(root_obj);
+        jsonFile.write(d.toJson());
+        jsonFile.close();
+    } catch (...){
+        return 1;
+    }
+    return 0;
+}
 
 // Поток для синхронного перемещения
 ULONG WINAPI SynThread(PVOID stk/*Context*/)
@@ -69,11 +105,13 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     ModuleConfig *MC = (ModuleConfig*)ctx[1];
     ADCRead *PADC = (ADCRead*)ctx[2];
     //
+    MC->mystate = 2;
     //Move to start position
     PStanda->MoveX(MC->StartX);
     PStanda->MoveY(MC->StartY);
     PStanda->MoveZ(PStanda->StateZ.CurPos);
     //Ожидаем выполнения до целей
+    MC->mystate = 3;
     PStanda->WaitDoneAll();
     //if (PStanda->GetInfo()) return 4;
     //Start Telik
@@ -84,8 +122,10 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     int ystart = PStanda->StateY.CurPos + ystep;
     //PADC->Init();
     //Sleep(50);
+    //Начали считывать данные
+    MC->mystate = 4;
     PADC->StartGetData();
-    for (int ypos=ystart; ypos<=MC->TelikH; ypos+=ystep){
+    for (int ypos=ystart; ypos<=MC->StartY+MC->TelikH; ypos+=ystep){
         //Move X
         MC->FixStart(PADC->GetCureByteNum(), PStanda->StateX.CurPos, PStanda->SpeedX, PStanda->PrmsX.AccelT, PStanda->PrmsX.DecelT, MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
         pari = !pari;
@@ -108,25 +148,12 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
             return 3;
     }
     PADC->StopGetData();
+    MC->mystate = 5;
     MC->WriteArrToFile2();
+    MC->mystate = 6;
     MC->MakeDataFile();
+    MC->mystate = 7;
     return 0;
-    //
-    //ModuleConfig *MC = (ModuleConfig*)stk;
-    if (!MC)
-        return TRUE;
-
-    for (int i = 0; i<10; i++)                         // Цикл по необходимомму количеству половинок
-    {
-        while (1)
-        {
-            if (InterlockedCompareExchange(&MC->complete, 3, 3))
-                return 0;
-        }
-
-        Sleep(0);                                     // если собираем медленно то можно и спать больше
-    }
-    return 0;                                         // Вышли
 }
 
 
@@ -272,7 +299,9 @@ int ModuleConfig::MakeDataFile()
     //ULONG *ArrPos;    //TInterpStri Stri;
     WriteArrToFile2();
     //LoadStriFromFile2();
-    FILE* file = fopen("data3.csv", "w"); //create empty file3
+    std::wstring filename;
+    filename = ExperFileName + L"_data3.csv";
+    FILE* file = _wfopen(filename.c_str(), L"w"); //create empty file3
     if (!file) {
         qWarning("Не удалось создать файл 3");
         return 1;
@@ -311,10 +340,19 @@ int ModuleConfig::WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrV
 int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
 {
     ULONG CurePos = PStri->StartPos;
-    int CureSpeedTic = PStri->TargetSpeedTic;//(PStri->TargetSpeedTic < MinSpeedFTic ? MinSpeedFTic : PStri->TargetSpeedTic);
+    int CureSpeedTic = (PStri->TargetSpeedTic > MaxSpeedFTic ? MaxSpeedFTic : PStri->TargetSpeedTic);//(PStri->TargetSpeedTic < MinSpeedFTic*PStri->Divisor ? PStri->TargetSpeedTic : MinSpeedFTic*PStri->Divisor);
     int ByteNum = 0;
     ULONG NextTicInFq;
     double TargetPosM;
+    //---Moving2---
+    TargetPosM = PStri->EndPos;
+    for (ULONG i=PStri->StartByteNum; i<PStri->EndByteNum;i+=2){
+        CurePos = (double)((double)PStri->EndPos - (double)PStri->StartPos)*(((double)i - (double)PStri->StartByteNum)/((double)PStri->EndByteNum - (double)PStri->StartByteNum)) + (double)PStri->StartPos;
+        fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[(i-PStri->StartByteNum)/2]);
+    }
+    return 0;
+
+    //!дальнейшая часть не работает корректно
     //---Accel---
     if (PStri->TargetSpeedTic > MinSpeedFTic){
         do{
@@ -329,12 +367,14 @@ int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE
                 CurePos -= 1;
             }
             ByteNum += NextTicInFq;
-            CureSpeedTic += 1;
+            //CureSpeedTic += 1;
+            CureSpeedTic = (double)((((double)0-Cacc)-(Aacc*((double)ByteNum/(double)Freq)*1000))/Bacc)*(double)PStri->Divisor;
         } while (CureSpeedTic < PStri->TargetSpeedTic);
         TargetPosM = PStri->EndPos - (PStri->DecT - (((0-Cdec)-(Bdec*PStri->TargetSpeedTic))/Adec))*MkmPerMs;//!это не точная позиция замедления, надо по fq
     } else {
         TargetPosM = PStri->EndPos;
     }
+    CureSpeedTic = PStri->TargetSpeedTic;
     //---Moving---
     do{
         NextTicInFq = Freq/CureSpeedTic;
@@ -355,7 +395,7 @@ int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE
         }
     } while (1);
     //---Decel---
-    if (PStri->TargetSpeedTic > MinSpeedFTic){
+    if (PStri->TargetSpeedTic > MinSpeedFTic*PStri->Divisor){
         do{
             NextTicInFq = Freq/CureSpeedTic;
             for (UINT f=0;f<NextTicInFq;f++){

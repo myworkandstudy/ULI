@@ -101,6 +101,13 @@ MainWindow::MainWindow(QWidget *parent) :
         tmr->setInterval(100); // Задаем интервал таймера
         connect(tmr, SIGNAL(timeout()), this, SLOT(updateTime())); // Подключаем сигнал таймера к нашему слоту
         tmr->start(); // Запускаем таймер
+        //
+        MConf.Load();
+        ui->spinBox_4->setValue(Standa.ManSpeed);
+        ui->lineEdit_4->setText(QString::fromStdString(MConf.ConfigFilePath));
+        //ui->statusBar->addWidget();
+        lstatus=new QLabel(this);
+        statusBar()->addWidget(lstatus);
 }
 
 MainWindow::~MainWindow()
@@ -129,15 +136,6 @@ QChart *MainWindow::createLineChart() const
     return chart;
 }
 
-void MainWindow::on_pushButton_2_clicked()
-{
-    Standa.MoveZ(ui->verticalSlider->value());
-}
-
-void MainWindow::on_verticalSlider_valueChanged(int value)
-{
-    ui->lineEdit->setText(QString::number(value));
-}
 
 void MainWindow::on_pushButton_7_clicked()
 {
@@ -174,7 +172,9 @@ void MainWindow::on_pushButton_11_clicked()
 
 void MainWindow::on_toolButton_clicked()
 {
-    ui->lineEdit_4->setText(QFileDialog::getOpenFileName(0, "Open Dialog", "", "*.cfg *.config"));
+    ui->lineEdit_4->setText(QFileDialog::getOpenFileName(0, "Open Dialog", "", "*.cfg *.config *.json"));
+    MConf.ConfigFilePath = ui->lineEdit_4->text().toStdString();
+    MConf.Save();
 }
 
 void MainWindow::updateTime()
@@ -198,6 +198,13 @@ void MainWindow::updateTime()
     //
     ULONG val = ADC.GetValue0();
     ui->label_6->setText(QString::number(val));
+    //
+    if (MConf.mystate == 2) lstatus->setText("Текущее состояние программы: Выставляем начальные позиции");
+    if (MConf.mystate == 3) lstatus->setText("Текущее состояние программы: Ожидаем выставления начальных позиций");
+    if (MConf.mystate == 4) lstatus->setText("Текущее состояние программы: Перемещение и сохранение данных");
+    if (MConf.mystate == 5) lstatus->setText("Текущее состояние программы: Сохраняем строки в файл 2");
+    if (MConf.mystate == 6) lstatus->setText("Текущее состояние программы: Сохраняем результат в файл 3");
+    if (MConf.mystate == 7) lstatus->setText("Текущее состояние программы: Готово");
     //
     xG+=100;
     if (xG>=32767) {
@@ -236,6 +243,7 @@ void MainWindow::on_pushButton_5_clicked()
 
 void MainWindow::on_pushButton_clicked()
 {
+    Standa.SetSpeedXYZ(Standa.ManSpeed,Standa.ManSpeed,Standa.ManSpeed);
     Standa.MoveX(ui->spinBox->value());
     Standa.MoveY(ui->spinBox_2->value());
     Standa.MoveZ(ui->spinBox_3->value());
@@ -243,10 +251,14 @@ void MainWindow::on_pushButton_clicked()
 
 void MainWindow::on_pushButton_12_clicked()
 {
+    lstatus->setText("Текущее состояние программы: Выполняется загрузка конфигурации");
+    MConf.ExperFileName = ui->lineEdit_2->text().toStdWString();
+    //C:/Users/102324/Documents/build-Standa1-Desktop_Qt_5_9_2_MSVC2017_64bit-D
     //------------------------------------
     //Load Config from JSON file
     if (MConf.Load()){
         QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось загрузить файлы конфига.\n Нарушена структура или нет файлов.)"));
+        return;
     }
     //Set params to Standa Driver
     //Standa.SetAccXYZ(MConf.AccX, MConf.AccY, MConf.AccZ);
@@ -258,12 +270,15 @@ void MainWindow::on_pushButton_12_clicked()
     Standa.GetPrmsAll();
     Standa.GetInfo();
     //
+    lstatus->setText("Текущее состояние программы: Выполняется задание");
     MConf.Start(&Standa, &ADC);
 }
 
 void MainWindow::on_pushButton_13_clicked()
 {
+    lstatus->setText("Текущее состояние программы: Остановка процесса");
     MConf.Stop(&Standa);
+    lstatus->setText("Текущее состояние программы: Процесс остановлен");
 }
 
 void MainWindow::on_pushButton_14_clicked()
@@ -331,4 +346,17 @@ void MainWindow::on_pushButton_20_clicked()
 void MainWindow::on_pushButton_6_clicked()
 {
 
+}
+
+void MainWindow::on_verticalSlider_2_valueChanged(int value)
+{
+    ui->spinBox_4->setValue(value);
+}
+
+void MainWindow::on_spinBox_4_valueChanged(int arg1)
+{
+    Standa.ManSpeed = arg1;
+    if (arg1 <= ui->verticalSlider_2->maximum()){
+        ui->verticalSlider_2->setValue(arg1);
+    }
 }

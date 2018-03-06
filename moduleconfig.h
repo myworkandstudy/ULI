@@ -19,6 +19,8 @@ typedef struct InterpStri {
     double z;
 } TInterpStri;
 
+#define SETTINGSFILENAME "settings.json"
+
 class ModuleConfig
 {
 public:
@@ -28,6 +30,7 @@ public:
 public:
     ModuleConfig();
     int Load(void);
+    int Save(void);
     int Start(My8SMC1 *, ADCRead *PADC);
     int Stop(My8SMC1 *);
     int LoadStriFromFile2();/*ULONG in_pos1, ULONG in_pos2, UINT16 *Out_ArrValue,
@@ -49,9 +52,12 @@ public:
     int StartX,StartY,StartZ;
     float SpeedX, SpeedY, SpeedZ;
     float mkmX, mkmY, mkmZ;
+    std::string ConfigFilePath;
+    std::wstring ExperFileName;
+    int mystate;
     //ca
 private:
-    ULONG Freq = 50000;//100000;
+    ULONG Freq = 100000;
     int MinSpeedFTic = 300, MaxSpeedFTic = 5000;
     //!
     double MkmPerTic, MkmPerMs;

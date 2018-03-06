@@ -53,7 +53,7 @@ LIBS += $$PWD/libUSMCDLL.lib
 #CONFIG += console
 
 DISTFILES += \
-    ../../source/repos/ConsoleApplication1/ConsoleApplication1/config1.json \
-    ../../source/repos/ConsoleApplication1/ConsoleApplication1/settings.json \
-    ../build-Standa1-Desktop_Qt_5_9_2_MSVC2017_64bit-Debug/data.dat
+    ../build-Standa1-Desktop_Qt_5_9_2_MSVC2017_64bit-Debug/data.dat \
+    ../build-Standa1-Desktop_Qt_5_9_2_MSVC2017_64bit-Debug/config1.json \
+    ../build-Standa1-Desktop_Qt_5_9_2_MSVC2017_64bit-Debug/settings.json
 

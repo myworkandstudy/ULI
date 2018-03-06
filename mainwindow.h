@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QtCharts/QChartGlobal>
 #include <QtCharts/QLineSeries>
+#include <QLabel>
 
 QT_CHARTS_BEGIN_NAMESPACE
 class QChartView;
@@ -27,11 +28,8 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
+    QLabel* lstatus;
 private slots:
-    void on_pushButton_2_clicked();
-
-    void on_verticalSlider_valueChanged(int value);
 
     void on_pushButton_7_clicked();
 
@@ -74,6 +72,10 @@ private slots:
     void on_pushButton_20_clicked();
 
     void on_pushButton_6_clicked();
+
+    void on_verticalSlider_2_valueChanged(int value);
+
+    void on_spinBox_4_valueChanged(int arg1);
 
 private:
     DataTable m_dataTable;

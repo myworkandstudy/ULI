@@ -489,17 +489,20 @@ int ADCRead::End()
     M_OK("Release IDaqLDevice", endl);
     cout << ".......... Ref: " << status << endl;
 
+    InterlockedBitTestAndSet(&complete, 0); //complete=1
+    InterlockedBitTestAndSet(&complete, 1); //complete=3
+    WaitForSingleObject(hThread, 2000);
     if (hThread) CloseHandle(hThread);
 
     if (fdata) UnmapViewOfFile(fdata);
     if (hMap) CloseHandle(hMap);
     if (hFile) CloseHandle(hFile);
 
-    //if (fdata1) UnmapViewOfFile(fdata1);
-    //if (hMap1) CloseHandle(hMap1);
-    //if (hFile1) CloseHandle(hFile1);
+    if (fdata1) UnmapViewOfFile(fdata1);
+    if (hMap1) CloseHandle(hMap1);
+    if (hFile1) CloseHandle(hFile1);
 
-    //cout << ".......... Exit." << endl;
+    cout << ".......... Exit." << endl;
     return 0;
 }
 
@@ -527,6 +530,5 @@ ULONG64 ADCRead::GetCureByteNum()
 
 int ADCRead::WriteToFile2()
 {
-
     return 0;
 }

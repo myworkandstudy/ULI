@@ -28,6 +28,7 @@ public:
     int DevX = 0;
     int DevY = 1;
     int DevZ = 2;
+    float ManSpeed = 100.0f;
 private:
 	USMC_Devices DVS;
 	DWORD Dev;
