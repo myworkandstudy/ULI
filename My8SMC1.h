@@ -7,6 +7,7 @@
 #include <tchar.h>
 #include <conio.h>
 #include <process.h>
+#include <string>
 #include "USMCDLL.h"
 //#include "moduleconfig.h"
 
@@ -14,8 +15,8 @@
 class My8SMC1
 {
 public:
-	My8SMC1();
-	~My8SMC1();
+    My8SMC1();
+    ~My8SMC1();
     //ModuleConfig *MC;
 	USMC_State StateX;
 	USMC_State StateY;
@@ -28,6 +29,7 @@ public:
     int DevX = 0;
     int DevY = 1;
     int DevZ = 2;
+    std::string serX, serY, serZ;
     float ManSpeed = 100.0f;
 private:
 	USMC_Devices DVS;
@@ -42,6 +44,7 @@ private:
 
 public:
 	// Init
+    int Init(std::string serx, std::string sery, std::string serz);
 	int Init();
     //
     int SetMode(DWORD Dev, USMC_Mode Mode);

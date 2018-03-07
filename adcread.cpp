@@ -36,7 +36,7 @@ ULONG   status;
 ADCRead::ADCRead()
 {
     IsStarted = 0;
-    Init();
+    //Init();
 }
 
 ADCRead::~ADCRead()
@@ -117,7 +117,7 @@ int ADCRead::Init(void)
     SLOT_PAR sl;
     ULONG   status;
     //int k;
-
+try{
     setlocale(LC_CTYPE, "");
 
 #ifdef _WIN64
@@ -132,6 +132,9 @@ int ADCRead::Init(void)
 #define M_OK(x,e)   do { cout << "SUCCESS -> " << x << e; } while(0)
 
     pIUnknown = CreateInstance(0);
+    if (!pIUnknown){
+        return 2;
+    }
     hr = pIUnknown->QueryInterface(IID_ILDEV, (void**)&pI);
     status = pIUnknown->Release();
     hVxd = pI->OpenLDevice(); // открываем устройство
@@ -418,7 +421,9 @@ int ADCRead::Init(void)
     else M_OK("InitStartLDevice(ADC)", endl);
 
     hThread = CreateThread(0, 0x2000, ServiceThread, this, 0, &Tid); // Создаем и запускаем поток сбора данных
-
+} catch (...){
+    return 3;
+}
     return 0;
 }
 
@@ -442,6 +447,9 @@ int ADCRead::StartGetData()
     if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
     else M_OK("CreateFile(data.dat)", endl);
 
+    if (!pI){
+        return 2;
+    }
     status = pI->StartLDevice(); // Запускаем сбор в драйвере
     if (status != L_SUCCESS) { M_FAIL("StartLDevice(ADC)", status); End(); return 11; }
     else M_OK("StartLDevice(ADC)", endl);
@@ -480,7 +488,9 @@ int ADCRead::End()
         InterlockedBitTestAndSet(&complete, 0); //complete=1
         WaitForSingleObject(hThread, INFINITE);
     }
-
+    if (!pI){
+        return 2;
+    }
     status = pI->CloseLDevice();
     if (status != L_SUCCESS) { M_FAIL("CloseLDevice", status); /*goto end;*/ }
     else M_OK("CloseLDevice", endl);
@@ -510,6 +520,9 @@ int ADCRead::StopGetData()
 {
     IsStarted = 0;
 
+    if (!pI){
+        return 2;
+    }
     status = pI->StopLDevice(); // Остановили сбор
     if (status != L_SUCCESS) { M_FAIL("StopLDevice(ADC)", status); End(); return 11; }
     else M_OK("StopLDevice(ADC)", endl);

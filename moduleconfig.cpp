@@ -26,15 +26,19 @@ int ModuleConfig::Load(void)
         val = file.readAll();
         file.close();
         QJsonDocument d = QJsonDocument::fromJson(val.toUtf8());
+        if (d.isEmpty() || d.isNull()) {
+            return 4;
+        }
         //
         mkmX = d.object()["MkmFTic"].toObject()["X"].toDouble();
         mkmY = d.object()["MkmFTic"].toObject()["Y"].toDouble();
         mkmZ = d.object()["MkmFTic"].toObject()["Z"].toDouble();
 
+        serX = d.object()["SerialDev"].toObject()["X"].toString().toStdString();
+        serY = d.object()["SerialDev"].toObject()["Y"].toString().toStdString();
+        serZ = d.object()["SerialDev"].toObject()["Z"].toString().toStdString();
+
         ConfigFilePath = d.object()["SavedData"].toObject()["ConfigFilePath"].toString().toStdString();
-        if (d.isEmpty() || d.isNull()) {
-            return 4;
-        }
 
         //QString val;
         //QFile file;
@@ -299,8 +303,13 @@ int ModuleConfig::MakeDataFile()
     //ULONG *ArrPos;    //TInterpStri Stri;
     WriteArrToFile2();
     //LoadStriFromFile2();
+    SYSTEMTIME st;
+    GetLocalTime(&st);
     std::wstring filename;
-    filename = ExperFileName + L"_data3.csv";
+    wchar_t filename2[1000];
+    swprintf(filename2, 1000, L"_%d-%02d-%02d_%02d-%02d-%02d.csv", st.wYear, st.wMonth, st.wDay,
+             st.wHour, st.wMinute,st.wSecond);
+    filename = ExperFileName + filename2;
     FILE* file = _wfopen(filename.c_str(), L"w"); //create empty file3
     if (!file) {
         qWarning("Не удалось создать файл 3");

@@ -102,7 +102,15 @@ MainWindow::MainWindow(QWidget *parent) :
         connect(tmr, SIGNAL(timeout()), this, SLOT(updateTime())); // Подключаем сигнал таймера к нашему слоту
         tmr->start(); // Запускаем таймер
         //
-        MConf.Load();
+        if (MConf.Load()){
+            QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось загрузить файлы конфига.\n Нарушена структура или нет файлов."));
+            return;
+        }
+        if (ADC.Init()) {
+            QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось инициализировать L-Card.\nВставьте устройство в порт и перезапустите программу."));
+        }
+        if (Standa.Init(MConf.serX,MConf.serY,MConf.serZ))
+            QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось инициализировать драйвер шагового двигателя 8SMC1.\nВставьте устройство в порт и перезапустите программу."));
         ui->spinBox_4->setValue(Standa.ManSpeed);
         ui->lineEdit_4->setText(QString::fromStdString(MConf.ConfigFilePath));
         //ui->statusBar->addWidget();
@@ -257,7 +265,7 @@ void MainWindow::on_pushButton_12_clicked()
     //------------------------------------
     //Load Config from JSON file
     if (MConf.Load()){
-        QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось загрузить файлы конфига.\n Нарушена структура или нет файлов.)"));
+        QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось загрузить файлы конфига.\n Нарушена структура или нет файлов."));
         return;
     }
     //Set params to Standa Driver
@@ -279,49 +287,6 @@ void MainWindow::on_pushButton_13_clicked()
     lstatus->setText("Текущее состояние программы: Остановка процесса");
     MConf.Stop(&Standa);
     lstatus->setText("Текущее состояние программы: Процесс остановлен");
-}
-
-void MainWindow::on_pushButton_14_clicked()
-{
-    ADC.Init();
-}
-
-void MainWindow::on_pushButton_15_clicked()
-{
-    ADC.StartGetData();
-    //
-    for (int i=0;i<10000;i++) {
-        arrS[i] = 0;
-    }
-    arrSidx = 0;
-    lastArrS = 0;
-    //
-    tmrDeb = new QTimer(this); // Создаем объект класса QTimer и передаем адрес переменной
-    tmrDeb->setInterval(100); // Задаем интервал таймера
-    connect(tmrDeb, SIGNAL(timeout()), this, SLOT(updateTimeDeb())); // Подключаем сигнал таймера к нашему слоту
-    tmrDeb->start(); // Запускаем таймер
-}
-
-void MainWindow::on_pushButton_16_clicked()
-{
-    ADC.StopGetData();
-    tmrDeb->stop();
-
-    MConf.WriteArrToFile2();
-
-    //HANDLE hFile2;
-    //Write to file
-    //hFile2 = CreateFileA("data2.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
-    //if (hFile2 == INVALID_HANDLE_VALUE) { return ; }
-    //WriteFile(hFile2, tmp1, halfbuffer*pointsize, &BytesWritten, NULL);
-}
-
-void MainWindow::on_pushButton_17_clicked()
-{
-    //ADC.FixS();
-    //ui->label_10->show();
-    int ret = QMessageBox::information(0,tr("information"),tr("No tabs for adding"),QMessageBox::Ok|QMessageBox::Cancel);
-    ret = 0;
 }
 
 void MainWindow::on_pushButton_18_clicked()

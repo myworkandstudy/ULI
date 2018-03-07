@@ -54,6 +54,7 @@ public:
     float mkmX, mkmY, mkmZ;
     std::string ConfigFilePath;
     std::wstring ExperFileName;
+    std::string serX,serY,serZ;
     int mystate;
     //ca
 private:

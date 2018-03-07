@@ -1,10 +1,9 @@
 //#include "stdafx.h"
 #include "My8SMC1.h"
 
-
 My8SMC1::My8SMC1()
 {
-	Init();
+    //Init();
 }
 
 
@@ -13,11 +12,53 @@ My8SMC1::~My8SMC1()
 
 }
 
+int My8SMC1::Init(std::string serx, std::string sery, std::string serz)
+{
+    serX = serx;
+    serY = sery;
+    serZ = serz;
+    return Init();
+}
+
 // Init
 int My8SMC1::Init()
 {
 	if (USMC_Init(DVS))
-		return 1;
+        return 1;
+    if (DVS.NOD < 3)
+        return 2;
+    if (strcmp(DVS.Serial[0],DVS.Serial[1])==0){
+        if (USMC_Init(DVS))
+            return 3;
+    }
+    if (strcmp(DVS.Serial[0],DVS.Serial[1])==0){
+        if (USMC_Close())
+            return 4;
+        if (USMC_Init(DVS))
+            return 5;
+    }
+    if (strcmp(DVS.Serial[0],DVS.Serial[1])==0){
+        if (USMC_Init(DVS))
+            return 6;
+    }
+    if (strcmp(DVS.Serial[0],DVS.Serial[1])==0)
+        return 7;
+    //если заданы, то по ним создаём оси
+    if (!serX.empty() && !serY.empty() &&!serZ.empty()){
+        for (DWORD i = 0; i < DVS.NOD; i++)
+        {
+            if (strcmp(DVS.Serial[i], serX.c_str())==0){
+                DevX = i;
+            }
+            if (strcmp(DVS.Serial[i], serY.c_str())==0){
+                DevY = i;
+            }
+            if (strcmp(DVS.Serial[i], serZ.c_str())==0){
+                DevZ = i;
+            }
+            //printf("Device - %d,\tSerial Number - %.16s,\tVersion - %.4s\n", i + 1, DVS.Serial[i], DVS.Version[i]);
+        }
+    }
 	//Z
 	Dev = DevZ;
 	if (USMC_GetMode(Dev, Mode))
