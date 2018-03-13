@@ -30,7 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     series0(new QLineSeries()),
-    series1(new QLineSeries())
+    series1(new QLineSeries()),
+    m_axisX(new QValueAxis()),
+    m_axisY(new QValueAxis())
 {
 
     //------------------------------------
@@ -62,8 +64,8 @@ MainWindow::MainWindow(QWidget *parent) :
         //QPen pen(0x059605);
         //pen.setWidth(3);
         //series->setPen(pen);
-        series0->setName("По оси X");
-        series1->setName("По оси Y");
+        series0->setName("Значение, мВ");
+        //series1->setName("Значение, мВ");
 
         //QLinearGradient gradient(QPointF(0, 0), QPointF(0, 1));
         //gradient.setColorAt(0.0, 0x3cc63c);
@@ -75,17 +77,22 @@ MainWindow::MainWindow(QWidget *parent) :
     //![4]
         chart = new QChart();
         chart->addSeries(series0);
-        chart->addSeries(series1);
+        //chart->addSeries(series1);
         chart->setTitle("Текущее измерение");
         chart->createDefaultAxes();
-        chart->axisX()->setRange(0, 32767);
-        chart->axisY()->setRange(0, 65535);
+        //chart->axisX()->setRange(0, 10000);
+        chart->setAxisX(m_axisX,series0);
+        m_axisX->setRange(0, 10000);
+        m_axisX->setTitleText("Время, мс");
+        //chart->axisY()->setRange(0, 2000);
+        chart->setAxisY(m_axisY,series0);
+        m_axisY->setRange(0, 2000);
     //![4]
 
     //![5]
         chartView = new QChartView(chart);
         chartView->setRenderHint(QPainter::Antialiasing);
-        chartView->setMinimumSize(640, 480);
+        chartView->setMinimumSize(800, 600);
     //![5]
 
     //![6]
@@ -93,14 +100,15 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->formLayout->addWidget(chartView);
 
         //
-        //!InitE14();
-        //ADC.Init();
-
-        //
         tmr = new QTimer(this); // Создаем объект класса QTimer и передаем адрес переменной
         tmr->setInterval(100); // Задаем интервал таймера
         connect(tmr, SIGNAL(timeout()), this, SLOT(updateTime())); // Подключаем сигнал таймера к нашему слоту
         tmr->start(); // Запускаем таймер
+        //
+        tmrG = new QTimer(this);
+        tmrG->setInterval(10);
+        connect(tmrG, SIGNAL(timeout()), this, SLOT(updateTimeGraph()));
+        tmrG->start();
         //
         if (MConf.Load()){
             QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось загрузить файлы конфига.\n Нарушена структура или нет файлов."));
@@ -168,9 +176,7 @@ void MainWindow::on_pushButton_9_clicked()
 
 void MainWindow::on_pushButton_10_clicked()
 {
-    qreal x = ui->lineEdit_3->text().toDouble();
-    qreal y = ui->lineEdit_5->text().toDouble();
-    series0->append(x, y);
+
 }
 
 void MainWindow::on_pushButton_11_clicked()
@@ -205,7 +211,7 @@ void MainWindow::updateTime()
     ui->label_5->setText(QString::number(Standa.StateZ.CurPos));
     //
     ULONG val = ADC.GetValue0();
-    ui->label_6->setText(QString::number(val));
+    ui->label_6->setText(QString::number((LONG)val));
     //
     if (MConf.mystate == 2) lstatus->setText("Текущее состояние программы: Выставляем начальные позиции");
     if (MConf.mystate == 3) lstatus->setText("Текущее состояние программы: Ожидаем выставления начальных позиций");
@@ -213,14 +219,17 @@ void MainWindow::updateTime()
     if (MConf.mystate == 5) lstatus->setText("Текущее состояние программы: Сохраняем строки в файл 2");
     if (MConf.mystate == 6) lstatus->setText("Текущее состояние программы: Сохраняем результат в файл 3");
     if (MConf.mystate == 7) lstatus->setText("Текущее состояние программы: Готово");
+}
+
+void MainWindow::updateTimeGraph()
+{
     //
-    xG+=100;
-    if (xG>=32767) {
+    xG+=10;
+    if (xG>= m_axisX->max()) {
         xG=0;
         series0->clear();
     }
-    //!series0->append(xG, ADC.GetValue0());
-    //!
+    series0->append(xG, (INT16)ADC.GetValue0());
 }
 
 void MainWindow::updateTimeDeb()
@@ -324,4 +333,28 @@ void MainWindow::on_spinBox_4_valueChanged(int arg1)
     if (arg1 <= ui->verticalSlider_2->maximum()){
         ui->verticalSlider_2->setValue(arg1);
     }
+}
+
+void MainWindow::on_lineEdit_7_editingFinished()
+{
+
+}
+
+void MainWindow::on_lineEdit_7_textChanged(const QString &arg1)
+{
+    if (arg1.toDouble() > m_axisY->min()){
+        chart->axisY()->setMax(arg1.toDouble());
+    }
+}
+
+void MainWindow::on_lineEdit_8_textChanged(const QString &arg1)
+{
+    if (arg1.toDouble() < m_axisY->max()){
+        chart->axisY()->setMin(arg1.toDouble());
+    }
+}
+
+void MainWindow::on_lineEdit_9_textChanged(const QString &arg1)
+{
+    m_axisX->setRange(0, arg1.toDouble());
 }

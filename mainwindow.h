@@ -5,6 +5,7 @@
 #include <QtCharts/QChartGlobal>
 #include <QtCharts/QLineSeries>
 #include <QLabel>
+#include <QValueAxis>
 
 QT_CHARTS_BEGIN_NAMESPACE
 class QChartView;
@@ -44,6 +45,7 @@ private slots:
     void on_toolButton_clicked();
 
     void updateTime();
+    void updateTimeGraph();
     void updateTimeDeb();
     void on_pushButton_3_clicked();
 
@@ -69,15 +71,25 @@ private slots:
 
     void on_spinBox_4_valueChanged(int arg1);
 
+    void on_lineEdit_7_editingFinished();
+
+    void on_lineEdit_7_textChanged(const QString &arg1);
+
+    void on_lineEdit_8_textChanged(const QString &arg1);
+
+    void on_lineEdit_9_textChanged(const QString &arg1);
+
 private:
     DataTable m_dataTable;
     Ui::MainWindow *ui;
     QLineSeries *series0;
     QLineSeries *series1;
+    QValueAxis *m_axisX, *m_axisY;
     QChart *chart;
     QChartView *chartView;
     QChart *createLineChart() const;
     QTimer *tmr;
+    QTimer *tmrG;
     QTimer *tmrDeb;
     int arrS[10000];
     int arrSidx;

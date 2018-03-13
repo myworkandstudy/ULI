@@ -33,7 +33,7 @@
         <string notr="true"/>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="iconSize">
         <size>
@@ -508,52 +508,19 @@
         <widget class="QWidget" name="formLayoutWidget">
          <property name="geometry">
           <rect>
-           <x>30</x>
-           <y>30</y>
-           <width>591</width>
-           <height>381</height>
+           <x>90</x>
+           <y>10</y>
+           <width>721</width>
+           <height>531</height>
           </rect>
          </property>
          <layout class="QFormLayout" name="formLayout"/>
         </widget>
-        <widget class="QPushButton" name="pushButton_10">
-         <property name="geometry">
-          <rect>
-           <x>650</x>
-           <y>100</y>
-           <width>75</width>
-           <height>23</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>append</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="lineEdit_3">
-         <property name="geometry">
-          <rect>
-           <x>650</x>
-           <y>30</y>
-           <width>81</width>
-           <height>20</height>
-          </rect>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="lineEdit_5">
-         <property name="geometry">
-          <rect>
-           <x>650</x>
-           <y>60</y>
-           <width>81</width>
-           <height>20</height>
-          </rect>
-         </property>
-        </widget>
         <widget class="QPushButton" name="pushButton_11">
          <property name="geometry">
           <rect>
-           <x>650</x>
-           <y>210</y>
+           <x>360</x>
+           <y>590</y>
            <width>75</width>
            <height>23</height>
           </rect>
@@ -565,9 +532,39 @@
         <widget class="QLineEdit" name="lineEdit_6">
          <property name="geometry">
           <rect>
-           <x>640</x>
-           <y>170</y>
+           <x>350</x>
+           <y>560</y>
            <width>101</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_7">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>71</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_8">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>520</y>
+           <width>71</width>
+           <height>20</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLineEdit" name="lineEdit_9">
+         <property name="geometry">
+          <rect>
+           <x>740</x>
+           <y>550</y>
+           <width>71</width>
            <height>20</height>
           </rect>
          </property>
@@ -890,6 +887,19 @@
            <set>Qt::AlignCenter</set>
           </property>
          </widget>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_14">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Старт</string>
+         </property>
         </widget>
        </item>
       </layout>
