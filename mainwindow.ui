@@ -33,7 +33,7 @@
         <string notr="true"/>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <property name="iconSize">
         <size>
@@ -219,7 +219,7 @@
               <number>999999999</number>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="MoveAllButton">
              <property name="geometry">
               <rect>
                <x>20</x>
@@ -233,7 +233,7 @@
 все оси</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_3">
+            <widget class="QPushButton" name="CureCoordXButton">
              <property name="geometry">
               <rect>
                <x>150</x>
@@ -246,7 +246,7 @@
               <string>Текущее</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_4">
+            <widget class="QPushButton" name="CureCoordYButton">
              <property name="geometry">
               <rect>
                <x>260</x>
@@ -259,7 +259,7 @@
               <string>Текущее</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_5">
+            <widget class="QPushButton" name="CureCoordZButton">
              <property name="geometry">
               <rect>
                <x>380</x>
@@ -428,7 +428,7 @@
               <string>Переместить все оси в &quot;0&quot;</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_7">
+            <widget class="QPushButton" name="HomeXButton">
              <property name="geometry">
               <rect>
                <x>40</x>
@@ -441,7 +441,7 @@
               <string>Переместить ось X в &quot;0&quot;</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_8">
+            <widget class="QPushButton" name="HomeYButton">
              <property name="geometry">
               <rect>
                <x>200</x>
@@ -454,7 +454,7 @@
               <string>Переместить ось Y в &quot;0&quot;</string>
              </property>
             </widget>
-            <widget class="QPushButton" name="pushButton_9">
+            <widget class="QPushButton" name="HomeZButton">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -474,7 +474,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QPushButton" name="pushButton_12">
+        <widget class="QPushButton" name="StartButton">
          <property name="geometry">
           <rect>
            <x>700</x>
@@ -487,7 +487,7 @@
           <string>Старт</string>
          </property>
         </widget>
-        <widget class="QPushButton" name="pushButton_13">
+        <widget class="QPushButton" name="StopButton">
          <property name="geometry">
           <rect>
            <x>700</x>
@@ -640,7 +640,7 @@
            <string>T1</string>
           </property>
          </widget>
-         <widget class="QPushButton" name="pushButton_18">
+         <widget class="QPushButton" name="PwrXButton">
           <property name="geometry">
            <rect>
             <x>60</x>
@@ -733,7 +733,7 @@
            <string>T2</string>
           </property>
          </widget>
-         <widget class="QPushButton" name="pushButton_19">
+         <widget class="QPushButton" name="PwrYButton">
           <property name="enabled">
            <bool>true</bool>
           </property>
@@ -823,7 +823,7 @@
            <string>T2</string>
           </property>
          </widget>
-         <widget class="QPushButton" name="pushButton_20">
+         <widget class="QPushButton" name="PwrZButton">
           <property name="geometry">
            <rect>
             <x>60</x>

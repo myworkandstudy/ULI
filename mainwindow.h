@@ -32,13 +32,11 @@ public:
     QLabel* lstatus;
 private slots:
 
-    void on_pushButton_7_clicked();
+    void on_HomeXButton_clicked();
 
-    void on_pushButton_8_clicked();
+    void on_HomeYButton_clicked();
 
-    void on_pushButton_9_clicked();
-
-    void on_pushButton_10_clicked();
+    void on_HomeZButton_clicked();
 
     void on_pushButton_11_clicked();
 
@@ -47,37 +45,34 @@ private slots:
     void updateTime();
     void updateTimeGraph();
     void updateTimeDeb();
-    void on_pushButton_3_clicked();
 
-    void on_pushButton_4_clicked();
+    void on_CureCoordXButton_clicked();
 
-    void on_pushButton_5_clicked();
+    void on_CureCoordYButton_clicked();
 
-    void on_pushButton_clicked();
+    void on_CureCoordZButton_clicked();
 
-    void on_pushButton_12_clicked();
+    void on_StartButton_clicked();
 
-    void on_pushButton_13_clicked();
+    void on_StopButton_clicked();
 
-    void on_pushButton_19_clicked();
+    void on_PwrXButton_clicked();
 
-    void on_pushButton_18_clicked();
+    void on_PwrYButton_clicked();
 
-    void on_pushButton_20_clicked();
-
-    void on_pushButton_6_clicked();
+    void on_PwrZButton_clicked();
 
     void on_verticalSlider_2_valueChanged(int value);
 
     void on_spinBox_4_valueChanged(int arg1);
-
-    void on_lineEdit_7_editingFinished();
 
     void on_lineEdit_7_textChanged(const QString &arg1);
 
     void on_lineEdit_8_textChanged(const QString &arg1);
 
     void on_lineEdit_9_textChanged(const QString &arg1);
+
+    void on_MoveAllButton_clicked();
 
 private:
     DataTable m_dataTable;

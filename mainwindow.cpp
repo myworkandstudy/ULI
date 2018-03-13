@@ -153,30 +153,25 @@ QChart *MainWindow::createLineChart() const
 }
 
 
-void MainWindow::on_pushButton_7_clicked()
+void MainWindow::on_HomeXButton_clicked()
 {
     if (QMessageBox::warning(0,tr("Подтверждение"),tr("Подтвердите действие"),QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok){
         Standa.HomeX();
     }
 }
 
-void MainWindow::on_pushButton_8_clicked()
+void MainWindow::on_HomeYButton_clicked()
 {
     if (QMessageBox::warning(0,tr("Подтверждение"),tr("Подтвердите действие"),QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok){
         Standa.HomeY();
     }
 }
 
-void MainWindow::on_pushButton_9_clicked()
+void MainWindow::on_HomeZButton_clicked()
 {
     if (QMessageBox::warning(0,tr("Подтверждение"),tr("Подтвердите действие"),QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok){
         Standa.HomeZ();
     }
-}
-
-void MainWindow::on_pushButton_10_clicked()
-{
-
 }
 
 void MainWindow::on_pushButton_11_clicked()
@@ -202,9 +197,9 @@ void MainWindow::updateTime()
     ui->label_14->setVisible(Standa.StateZ.Trailer1);
     ui->label_15->setVisible(Standa.StateZ.Trailer2);
     //
-    ui->pushButton_18->setChecked(!Standa.ModeX.ResetD);
-    ui->pushButton_19->setChecked(!Standa.ModeY.ResetD);
-    ui->pushButton_20->setChecked(!Standa.ModeZ.ResetD);
+    ui->PwrXButton->setChecked(!Standa.ModeX.ResetD);
+    ui->PwrYButton->setChecked(!Standa.ModeY.ResetD);
+    ui->PwrZButton->setChecked(!Standa.ModeZ.ResetD);
     //
     ui->label_3->setText(QString::number(Standa.StateX.CurPos));
     ui->label_4->setText(QString::number(Standa.StateY.CurPos));
@@ -243,30 +238,22 @@ void MainWindow::updateTimeDeb()
     arrS[arrSidx] = 1;
 }
 
-void MainWindow::on_pushButton_3_clicked()
+void MainWindow::on_CureCoordXButton_clicked()
 {
     ui->spinBox->setValue(ui->label_3->text().toInt());
 }
 
-void MainWindow::on_pushButton_4_clicked()
+void MainWindow::on_CureCoordYButton_clicked()
 {
     ui->spinBox_2->setValue(ui->label_4->text().toInt());
 }
 
-void MainWindow::on_pushButton_5_clicked()
+void MainWindow::on_CureCoordZButton_clicked()
 {
     ui->spinBox_3->setValue(ui->label_5->text().toInt());
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    Standa.SetSpeedXYZ(Standa.ManSpeed,Standa.ManSpeed,Standa.ManSpeed);
-    Standa.MoveX(ui->spinBox->value());
-    Standa.MoveY(ui->spinBox_2->value());
-    Standa.MoveZ(ui->spinBox_3->value());
-}
-
-void MainWindow::on_pushButton_12_clicked()
+void MainWindow::on_StartButton_clicked()
 {
     lstatus->setText("Текущее состояние программы: Выполняется загрузка конфигурации");
     MConf.ExperFileName = ui->lineEdit_2->text().toStdWString();
@@ -291,36 +278,32 @@ void MainWindow::on_pushButton_12_clicked()
     MConf.Start(&Standa, &ADC);
 }
 
-void MainWindow::on_pushButton_13_clicked()
+void MainWindow::on_StopButton_clicked()
 {
     lstatus->setText("Текущее состояние программы: Остановка процесса");
     MConf.Stop(&Standa);
     lstatus->setText("Текущее состояние программы: Процесс остановлен");
 }
 
-void MainWindow::on_pushButton_18_clicked()
+void MainWindow::on_PwrXButton_clicked()
 {
     //Standa.StateX.Power
     Standa.ModeX.ResetD = !Standa.ModeX.ResetD;
     Standa.SetMode(Standa.DevX, Standa.ModeX);
 }
 
-void MainWindow::on_pushButton_19_clicked()
+void MainWindow::on_PwrYButton_clicked()
 {
     Standa.ModeY.ResetD = !Standa.ModeY.ResetD;
     Standa.SetMode(Standa.DevY, Standa.ModeY);
 }
 
-void MainWindow::on_pushButton_20_clicked()
+void MainWindow::on_PwrZButton_clicked()
 {
     Standa.ModeZ.ResetD = !Standa.ModeZ.ResetD;
     Standa.SetMode(Standa.DevZ, Standa.ModeZ);
 }
 
-void MainWindow::on_pushButton_6_clicked()
-{
-
-}
 
 void MainWindow::on_verticalSlider_2_valueChanged(int value)
 {
@@ -335,10 +318,6 @@ void MainWindow::on_spinBox_4_valueChanged(int arg1)
     }
 }
 
-void MainWindow::on_lineEdit_7_editingFinished()
-{
-
-}
 
 void MainWindow::on_lineEdit_7_textChanged(const QString &arg1)
 {
@@ -357,4 +336,12 @@ void MainWindow::on_lineEdit_8_textChanged(const QString &arg1)
 void MainWindow::on_lineEdit_9_textChanged(const QString &arg1)
 {
     m_axisX->setRange(0, arg1.toDouble());
+}
+
+void MainWindow::on_MoveAllButton_clicked()
+{
+    Standa.SetSpeedXYZ(Standa.ManSpeed,Standa.ManSpeed,Standa.ManSpeed);
+    Standa.MoveX(ui->spinBox->value());
+    Standa.MoveY(ui->spinBox_2->value());
+    Standa.MoveZ(ui->spinBox_3->value());
 }
