@@ -6,6 +6,7 @@
 #include "adcread.h"
 #include <QDebug>
 #include <QTimer>
+#include <QTime>
 
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
@@ -32,7 +33,8 @@ MainWindow::MainWindow(QWidget *parent) :
     series0(new QLineSeries()),
     series1(new QLineSeries()),
     m_axisX(new QValueAxis()),
-    m_axisY(new QValueAxis())
+    m_axisY(new QValueAxis()),
+    time1(new QTime())
 {
 
     //------------------------------------
@@ -214,13 +216,31 @@ void MainWindow::updateTime()
     if (MConf.mystate == 5) lstatus->setText("Текущее состояние программы: Сохраняем строки в файл 2");
     if (MConf.mystate == 6) lstatus->setText("Текущее состояние программы: Сохраняем результат в файл 3");
     if (MConf.mystate == 7) lstatus->setText("Текущее состояние программы: Готово");
+    //
+    if (MConf.mystate>1){
+        double perc = (double)100.0 / MConf.TimeLeft * (double)time1->elapsed();
+        if (perc > 100) perc = 100;
+        double minleft = (double)(MConf.TimeLeft - (double)time1->elapsed())/(double)60.0;
+        if (minleft < 1) {
+            ui->TextProgressBar_label->setText("Выполнено " + QString::number(perc,0,1)
+                                               + "% (Осталось меньше минуты)");
+        } else {
+            ui->TextProgressBar_label->setText("Выполнено " + QString::number(perc,0,1)
+                                               + "% (Осталось " + QString::number(minleft,0,1) + " мин)");
+        }
+    } else {
+        ui->progressBar->setValue(0);
+        double TimeLeft_minutes = MConf.TimeLeft / (double)60.0;
+        ui->TextProgressBar_label->setText("Требуется минут: " + QString::number(TimeLeft_minutes, 0, 1));
+    }
 }
 
 void MainWindow::updateTimeGraph()
 {
     //
     xG+=10;
-    if (xG>= m_axisX->max()) {
+    if (MConf.TelikStringTrig){//(xG>= m_axisX->max()) {
+        MConf.TelikStringTrig = 0;
         xG=0;
         series0->clear();
     }
@@ -255,26 +275,26 @@ void MainWindow::on_CureCoordZButton_clicked()
 
 void MainWindow::on_StartButton_clicked()
 {
+    time1->start();
     lstatus->setText("Текущее состояние программы: Выполняется загрузка конфигурации");
     MConf.ExperFileName = ui->lineEdit_2->text().toStdWString();
-    //C:/Users/102324/Documents/build-Standa1-Desktop_Qt_5_9_2_MSVC2017_64bit-D
     //------------------------------------
     //Load Config from JSON file
     if (MConf.Load()){
         QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось загрузить файлы конфига.\n Нарушена структура или нет файлов."));
         return;
     }
-    //Set params to Standa Driver
+    //Set params to Standa Driver (!Не работает!)
     //Standa.SetAccXYZ(MConf.AccX, MConf.AccY, MConf.AccZ);
     //
     Standa.SetSpeedXYZ(MConf.SpeedX, MConf.SpeedY, MConf.SpeedZ);
     //
-    //Standa.HomeX();
-    //Standa.HomeY();
     Standa.GetPrmsAll();
     Standa.GetInfo();
     //
     lstatus->setText("Текущее состояние программы: Выполняется задание");
+    double maxrange = (double)MConf.TelikW/MConf.SpeedX*(double)1000.0;
+    m_axisX->setRange(0, maxrange);
     MConf.Start(&Standa, &ADC);
 }
 

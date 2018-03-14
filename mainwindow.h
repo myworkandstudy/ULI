@@ -89,6 +89,7 @@ private:
     int arrS[10000];
     int arrSidx;
     int lastArrS;
+    QTime *time1;
 };
 
 #endif // MAINWINDOW_H

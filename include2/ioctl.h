@@ -104,7 +104,7 @@
 #define L_STREAM_FMETER 5
 #define L_STREAM_DDS 6
 
-#define L_MEM_ALLOC  10 // смещение в массиве overlapped структур для overlapped аллокатора пямяти + stream_id
+#define L_MEM_ALLOC  10 // СЃРјРµС‰РµРЅРёРµ РІ РјР°СЃСЃРёРІРµ overlapped СЃС‚СЂСѓРєС‚СѓСЂ РґР»СЏ overlapped Р°Р»Р»РѕРєР°С‚РѕСЂР° РїСЏРјСЏС‚Рё + stream_id
 
 #define L_EVENT_ADC_BUF 1
 #define L_EVENT_DAC_BUF 2
@@ -231,7 +231,7 @@ typedef struct __SLOT_PARAM
       USHORT LoStopFreqReg;   // AAAA DDDD DDDD DDDD
       USHORT HiStopFreqReg;   // AAAA DDDD DDDD DDDD
       UCHAR  AutoScanType; 
-      double MasterClock;  // 8байт
+      double MasterClock;  // 8Р±Р°Р№С‚
       UCHAR  Reserved0[15];
       // control reg
       UCHAR  CtrlReg;         //       GG2 GG1 ODDD
@@ -251,12 +251,12 @@ typedef struct __SLOT_PARAM
    typedef struct _DAC_PARAM_U_2
     : public DAQ_PAR
    {
-      double MasterClk; // если ext больше int то установить int и базовй
+      double MasterClk; // РµСЃР»Рё ext Р±РѕР»СЊС€Рµ int С‚Рѕ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ int Рё Р±Р°Р·РѕРІР№
       USHORT MasterSrc; // ext int
 
-      USHORT DDS_CtrlReg;     // AAAA DDDD 00D0 DD00 биты синхросигнала источник перывания цифровой выход меандр
+      USHORT DDS_CtrlReg;     // AAAA DDDD 00D0 DD00 Р±РёС‚С‹ СЃРёРЅС…СЂРѕСЃРёРіРЅР°Р»Р° РёСЃС‚РѕС‡РЅРёРє РїРµСЂС‹РІР°РЅРёСЏ С†РёС„СЂРѕРІРѕР№ РІС‹С…РѕРґ РјРµР°РЅРґСЂ
 
-      UCHAR  CyclicScan; // none циклический пила цикл треуг
+      UCHAR  CyclicScan; // none С†РёРєР»РёС‡РµСЃРєРёР№ РїРёР»Р° С†РёРєР» С‚СЂРµСѓРі
 
       USHORT ScanSteps;     // 0 4095
 
@@ -268,7 +268,7 @@ typedef struct __SLOT_PARAM
 
       double StartFreq; // AAAA DDDD DDDD DDDD
 
-      double StopFreq; // AAAA DDDD DDDD DDDD // return если треуг то она стартовой записывается
+      double StopFreq; // AAAA DDDD DDDD DDDD // return РµСЃР»Рё С‚СЂРµСѓРі С‚Рѕ РѕРЅР° СЃС‚Р°СЂС‚РѕРІРѕР№ Р·Р°РїРёСЃС‹РІР°РµС‚СЃСЏ
 
       // in ddr_ctrl_reg
       USHORT SyncOutType;
@@ -285,7 +285,7 @@ typedef struct __SLOT_PARAM
       double Out10_offset; //0 - 255 +4 -4V
       UCHAR  Out10_offsrc;    // int ext
 
-      UCHAR  OutGain;  // коды усиления
+      UCHAR  OutGain;  // РєРѕРґС‹ СѓСЃРёР»РµРЅРёСЏ
 
       double FM_POROG;      ////0 - 255 +4 -4V
 
@@ -346,11 +346,11 @@ typedef struct __SLOT_PARAM
       ULONG DM_Ena;    // data marker ena/dis
       ULONG Rate;
       ULONG Kadr;
-      ULONG StartCnt;    // задержка сбора при старте в количестве кадров
-      ULONG StopCnt;     // остановка сбора после количества кадров
+      ULONG StartCnt;    // Р·Р°РґРµСЂР¶РєР° СЃР±РѕСЂР° РїСЂРё СЃС‚Р°СЂС‚Рµ РІ РєРѕР»РёС‡РµСЃС‚РІРµ РєР°РґСЂРѕРІ
+      ULONG StopCnt;     // РѕСЃС‚Р°РЅРѕРІРєР° СЃР±РѕСЂР° РїРѕСЃР»Рµ РєРѕР»РёС‡РµСЃС‚РІР° РєР°РґСЂРѕРІ
       ULONG SynchroType;   // in e20-10 start type
       ULONG SynchroMode;    // advanced synchro mode + chan number
-      ULONG AdPorog;         // порог синхронизации
+      ULONG AdPorog;         // РїРѕСЂРѕРі СЃРёРЅС…СЂРѕРЅРёР·Р°С†РёРё
       ULONG SynchroSrc;    // in e20-10 clock source
       ULONG AdcIMask;  // cange from Reserved4 to AdcIMask for e20-10 adc input config
       ULONG NCh;
@@ -465,8 +465,8 @@ typedef struct W_ADC_PARAM_U_1
 
    ULONG Rate;
    ULONG Kadr;
-   ULONG StartCnt;    // задержка сбора при старте в количестве кадров
-   ULONG StopCnt;     // остановка сбора после количества кадров
+   ULONG StartCnt;    // Р·Р°РґРµСЂР¶РєР° СЃР±РѕСЂР° РїСЂРё СЃС‚Р°СЂС‚Рµ РІ РєРѕР»РёС‡РµСЃС‚РІРµ РєР°РґСЂРѕРІ
+   ULONG StopCnt;     // РѕСЃС‚Р°РЅРѕРІРєР° СЃР±РѕСЂР° РїРѕСЃР»Рµ РєРѕР»РёС‡РµСЃС‚РІР° РєР°РґСЂРѕРІ
 
    ULONG SynchroType;
    ULONG SynchroMode;    // advanced synchro mode + chan number
@@ -649,8 +649,8 @@ typedef union __PLATA_DESCR_U
    BYTE_IMAGE bi;
 } PLATA_DESCR_U, *PPLATA_DESCR_U;
 
-// введены тк у платы 2010 флеш 256 байт и никак его не втиснуть в 128
-// соответсвенно объедененный образ увеличен до 256
+// РІРІРµРґРµРЅС‹ С‚Рє Сѓ РїР»Р°С‚С‹ 2010 С„Р»РµС€ 256 Р±Р°Р№С‚ Рё РЅРёРєР°Рє РµРіРѕ РЅРµ РІС‚РёСЃРЅСѓС‚СЊ РІ 128
+// СЃРѕРѕС‚РІРµС‚СЃРІРµРЅРЅРѕ РѕР±СЉРµРґРµРЅРµРЅРЅС‹Р№ РѕР±СЂР°Р· СѓРІРµР»РёС‡РµРЅ РґРѕ 256
 // size - 256 byte
 typedef struct __PLATA_DESCR_E2010
 {
@@ -669,13 +669,13 @@ typedef struct __PLATA_DESCR_E2010
 
 typedef struct __PLATA_DESCR_E310
 {
-   char     BrdName[16];          // название модуля
-   char     SerNum[16];  // серийный номер модуля
-   char     DspType[25];                  // название установленного MCU
-   char     Rev;                                           // ревизия платы
-   ULONG Quartz;                                         // тактовая частота MCU в Гц
-   char     Reserved[192];                                  // зарезервировано
-   USHORT CRC;                                              // контрольная сумма структуры
+   char     BrdName[16];          // РЅР°Р·РІР°РЅРёРµ РјРѕРґСѓР»СЏ
+   char     SerNum[16];  // СЃРµСЂРёР№РЅС‹Р№ РЅРѕРјРµСЂ РјРѕРґСѓР»СЏ
+   char     DspType[25];                  // РЅР°Р·РІР°РЅРёРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРіРѕ MCU
+   char     Rev;                                           // СЂРµРІРёР·РёСЏ РїР»Р°С‚С‹
+   ULONG Quartz;                                         // С‚Р°РєС‚РѕРІР°СЏ С‡Р°СЃС‚РѕС‚Р° MCU РІ Р“С†
+   char     Reserved[192];                                  // Р·Р°СЂРµР·РµСЂРІРёСЂРѕРІР°РЅРѕ
+   USHORT CRC;                                              // РєРѕРЅС‚СЂРѕР»СЊРЅР°СЏ СЃСѓРјРјР° СЃС‚СЂСѓРєС‚СѓСЂС‹
 }  PLATA_DESCR_E310, *PPLATA_DESCR_E310;;
 
 typedef struct __WORD_IMAGE_256
@@ -967,4 +967,4 @@ const int DIOC_ABORT_PIPE3 = 0x108;
 #endif
 
 #endif
-// следующий 51 &54
+// СЃР»РµРґСѓСЋС‰РёР№ 51 &54

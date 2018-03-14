@@ -39,6 +39,11 @@ int ModuleConfig::Load(void)
         serZ = d.object()["SerialDev"].toObject()["Z"].toString().toStdString();
 
         ConfigFilePath = d.object()["SavedData"].toObject()["ConfigFilePath"].toString().toStdString();
+        if (d.object()["SavedData"].toObject()["MakeFileWriteCoef"].isNull()){
+            MakeFileWriteCoef = 0.00001;
+        } else{
+            MakeFileWriteCoef = d.object()["SavedData"].toObject()["MakeFileWriteCoef"].toDouble();
+        }
 
         //QString val;
         //QFile file;
@@ -55,6 +60,11 @@ int ModuleConfig::Load(void)
         TelikW = d.object()["Telik"].toObject()["W"].toDouble();
         TelikH = d.object()["Telik"].toObject()["H"].toDouble();
         TelikYStep = d.object()["Telik"].toObject()["YStep"].toDouble();
+        if (TelikFreq = d.object()["Telik"].toObject()["Freq"].isNull()){
+            TelikFreq = 100000;
+        } else {
+            TelikFreq = d.object()["Telik"].toObject()["Freq"].toDouble();
+        }
         //
         AccX = d.object()["Acceleration"].toObject()["X"].toDouble();
         AccY = d.object()["Acceleration"].toObject()["Y"].toDouble();
@@ -67,9 +77,24 @@ int ModuleConfig::Load(void)
         SpeedX = d.object()["Speed"].toObject()["X"].toInt();
         SpeedY = d.object()["Speed"].toObject()["Y"].toInt();
         SpeedZ = d.object()["Speed"].toObject()["Z"].toInt();
+        //Divisor = d.object()["Speed"].toObject()["Divisor"].toInt();
     } catch (...){
         return 1;
     }
+    CalcTimeLeft();
+    return 0;
+}
+
+int ModuleConfig::CalcTimeLeft(void)
+{
+    //время движения
+    double DFSize;
+    TimeLeft = (double)(TelikW/SpeedX)*(double)(TelikH/TelikYStep);
+    TimeLeft += (double)(TelikH/SpeedY);
+    TimeLeft = TimeLeft * 1.05;
+    //время формирования файла
+    DFSize = TimeLeft * TelikFreq * 2.0;
+    TimeLeft += DFSize*MakeFileWriteCoef;
     return 0;
 }
 
@@ -136,6 +161,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
         if (pari){
             //PStanda->StateX.CurPos = xpos2;
             //Sleep(50);
+            InterlockedExchange(&MC->TelikStringTrig, 1);
             if (PStanda->MoveXSync(xpos2))
                 return 1;
         } else {
@@ -163,6 +189,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
 
 int ModuleConfig::Start(My8SMC1 *PStanda, ADCRead *PADC)
 {
+    mystate = 2;
     void** ctx;
     ctx = new PVOID [2];
     ctx[0] = PStanda;
@@ -178,6 +205,8 @@ int ModuleConfig::Start(My8SMC1 *PStanda, ADCRead *PADC)
 
 int ModuleConfig::Stop(My8SMC1 *PStanda)
 {
+    mystate = 1;
+    WaitForSingleObject(hThread, 1000);
     if (hThread) CloseHandle(hThread);
     PStanda->StopX();
     PStanda->StopY();
@@ -204,7 +233,7 @@ int ModuleConfig::FixStop(ULONG64 ByteNum, int pos)
     arrData[CureArrIdx].EndByteNum = ByteNum;
     arrData[CureArrIdx].EndPos = pos;
     CureArrIdx++;
-    if (CureArrIdx>=1000)
+    if (CureArrIdx>=10000)
         CureArrIdx=0;
     return 0;
 }

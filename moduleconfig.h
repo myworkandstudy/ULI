@@ -4,6 +4,9 @@
 #include "My8SMC1.h"
 #include "adcread.h"
 #include <windows.h>
+#include <stdio.h>
+#include <conio.h>
+#include <iostream>
 
 typedef struct InterpStri {
     int TargetSpeedTic;
@@ -30,6 +33,7 @@ public:
 public:
     ModuleConfig();
     int Load(void);
+    int CalcTimeLeft(void);
     int Save(void);
     int Start(My8SMC1 *, ADCRead *PADC);
     int Stop(My8SMC1 *);
@@ -47,7 +51,8 @@ public:
     int WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrValue);
 public:
     //from file
-    double TelikW, TelikH, TelikYStep;
+    double TelikW, TelikH, TelikYStep, TelikFreq, MakeFileWriteCoef, TimeLeft;
+    unsigned int TelikStringTrig = 0;
     double AccX,AccY,AccZ;
     int StartX,StartY,StartZ;
     float SpeedX, SpeedY, SpeedZ;
@@ -64,7 +69,7 @@ private:
     double MkmPerTic, MkmPerMs;
     double Aacc,Bacc,Cacc,Adec,Bdec,Cdec;
     int CureArrIdx;
-    TInterpStri arrData[1000];
+    TInterpStri arrData[10000];
 };
 
 #endif // MODULECONFIG_H

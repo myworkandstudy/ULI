@@ -60,7 +60,7 @@
 #define CH_2               0x02
 #define CH_3               0x03
 
-// виртуальные адреса для доступа к различным ресурсам модуля
+// РІРёСЂС‚СѓР°Р»СЊРЅС‹Рµ Р°РґСЂРµСЃР° РґР»СЏ РґРѕСЃС‚СѓРїР° Рє СЂР°Р·Р»РёС‡РЅС‹Рј СЂРµСЃСѓСЂСЃР°Рј РјРѕРґСѓР»СЏ
 #define SEL_TEST_MODE         (0x81000000L)
 #define SEL_AVR_DM            (0x82000000L)
 #define SEL_AVR_PM            (0x83000000L)
@@ -76,7 +76,7 @@
 #define SEL_DEBUG_INFO        (0x8F000000L)
 
 
-// различные адреса памяти программ микроконтроллера
+// СЂР°Р·Р»РёС‡РЅС‹Рµ Р°РґСЂРµСЃР° РїР°РјСЏС‚Рё РїСЂРѕРіСЂР°РјРј РјРёРєСЂРѕРєРѕРЅС‚СЂРѕР»Р»РµСЂР°
 #define FIRMWARE_START_ADDRESS            (SEL_AVR_PM | 0x0000L)
 #define USER_FLASH_ADDRESS                (SEL_AVR_PM | 0x2D00L)
 #define FIRMWARE_DESCRIPTOR_ADDRESS       (SEL_AVR_PM | 0x2F00L)
@@ -84,7 +84,7 @@
 #define BOOT_LOADER_START_ADDRESS         (SEL_AVR_PM | 0x3C00L)
 #define BOOT_LOADER_DESCRIPTOR_ADDRESS    (SEL_AVR_PM | 0x3FB0L)
 
-// различные адреса переменных в памяти данных микроконтроллера
+// СЂР°Р·Р»РёС‡РЅС‹Рµ Р°РґСЂРµСЃР° РїРµСЂРµРјРµРЅРЅС‹С… РІ РїР°РјСЏС‚Рё РґР°РЅРЅС‹С… РјРёРєСЂРѕРєРѕРЅС‚СЂРѕР»Р»РµСЂР°
 #define DATA_STATE_ADDRESS                (SEL_AVR_DM | (0x0150L + 0x00L))
 #define EXTRA_SYNCHRO_PARS_ADDRESS        (SEL_AVR_DM | (0x0150L + 13))
 #define ADC_CORRECTION_ADDRESS            (SEL_AVR_DM | (0x0150L + 13 + 13))

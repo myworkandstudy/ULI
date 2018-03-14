@@ -46,7 +46,7 @@ typedef struct USMC_Parameters_st{
     float BTO4P;		//
     WORD MaxLoft;		// Value in full steps that will be used performing backlash operation
     DWORD StartPos;		// Current Position Saved to FLASH (see Test MicroSMC.cpp)
-	WORD RTDelta;		// Revolution distance – number of full steps per one full revolution
+	WORD RTDelta;		// Revolution distance â€“ number of full steps per one full revolution
     WORD RTMinError;	// Number of full steps missed to raise the error flag
 	float MaxTemp;		// Maximum allowed temperature (Celsius)
 	BYTE SynOUTP;		// Duration of the output synchronization pulse
@@ -75,16 +75,16 @@ typedef struct USMC_Mode_st{
     BOOL PReg;			// Current reduction regime (TRUE - regime is on)
     BOOL ResetD;		// Turn power off and make a whole step (TRUE - apply)
     BOOL EMReset;		// Quick power off
-    BOOL Tr1T;			// Trailer 1 TRUE state (TRUE : +3/+5Â; FALSE : 0Â)
-    BOOL Tr2T;			// Trailer 2 TRUE state (TRUE : +3/+5Â; FALSE : 0Â)
-    BOOL RotTrT;		// Rotary Transducer TRUE state (TRUE : +3/+5Â; FALSE : 0Â)
+    BOOL Tr1T;			// Trailer 1 TRUE state (TRUE : +3/+5Ð’; FALSE : 0Ð’)
+    BOOL Tr2T;			// Trailer 2 TRUE state (TRUE : +3/+5Ð’; FALSE : 0Ð’)
+    BOOL RotTrT;		// Rotary Transducer TRUE state (TRUE : +3/+5Ð’; FALSE : 0Ð’)
     BOOL TrSwap;		// If TRUE, Trailers are treated to be swapped
     BOOL Tr1En;			// If TRUE Trailer 1 Operation Enabled
     BOOL Tr2En;			// If TRUE Trailer 2 Operation Enabled
     BOOL RotTeEn;		// If TRUE Rotary Transducer Operation Enabled
     BOOL RotTrOp;		// Rotary Transducer Operation Select (stop on error for TRUE)
-    BOOL Butt1T;		// Button 1 TRUE state (TRUE : +3/+5Â; FALSE : 0Â)
-    BOOL Butt2T;		// Button 2 TRUE state (TRUE : +3/+5Â; FALSE : 0Â)
+    BOOL Butt1T;		// Button 1 TRUE state (TRUE : +3/+5Ð’; FALSE : 0Ð’)
+    BOOL Butt2T;		// Button 2 TRUE state (TRUE : +3/+5Ð’; FALSE : 0Ð’)
     BOOL ResetRT;		// Reset Rotary Transducer Check Positions (need one full revolution before it can detect error)
     BOOL SyncOUTEn;		// If TRUE output syncronization enabled
     BOOL SyncOUTR;		// If TRUE output synchronization counter will be reset

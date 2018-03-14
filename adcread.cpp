@@ -1,33 +1,50 @@
+#define INITGUID
+
 #include "adcread.h"
 
-//ф-ции пока лежат в Source.cpp
-extern int InitE14(void);
-extern ULONG GetVal(void);
+#include <windows.h>
+#include <stdio.h>
+#include <conio.h>
+#include <clocale>
+#include <iostream>
+#include <iomanip>
+#include <objbase.h>
+#include <math.h>
+
+#include "include2\ioctl.h"
+#include "include2\ifc_ldev.h"
+#include "include2\e2010cmd.h"
+
+//#include <QTextStream>
+//QTextStream cout(stdout);
+//QTextStream cin(stdin);
+
+ULONG GetVal(void);
 typedef IDaqLDevice* (*CREATEFUNCPTR)(ULONG Slot);
 
-extern LUnknown* pIUnknown;
-extern IDaqLDevice* pI;
-extern HRESULT hr;
-extern HANDLE hVxd;
+LUnknown* pIUnknown;
+IDaqLDevice* pI;
+HRESULT hr;
+HANDLE hVxd;
 
-extern void     *fdata, *fdata1;
-extern HANDLE   hFile, hMap, hFile1, hMap1;
-extern long     fsize;
+void     *fdata = NULL, *fdata1 = NULL;
+HANDLE   hFile = NULL, hMap = NULL, hFile1 = NULL, hMap1 = NULL;
+long     fsize;
 
-extern void    *data_rbuf;
-extern ULONG   *sync;
+void    *data_rbuf;
+ULONG   *sync;
 
-extern LONG   complete;
+LONG   complete;
 LONG   stop;
 
-extern HANDLE  hThread;
-extern ULONG   Tid;
+HANDLE  hThread = NULL;
+ULONG   Tid;
 
-extern USHORT IrqStep;//777-777%7; // половинка буфера кратная числу каналов или не обязательно кратная
-extern USHORT FIFO;         //
-extern USHORT pages;  // количество страниц IrqStep в кольцевом буфере PC
-extern USHORT multi;    // - количество половинок кольцевого буфера, которое мы хотим собрать и записать на диск
-extern ULONG  pointsize;     // pI->GetParameter(L_POINT_SIZE, &ps) возвращает размер отсчета в байтах (обычно 2, но 791 4 байта)
+USHORT IrqStep=1024;//777-777%7; // половинка буфера кратная числу каналов или не обязательно кратная
+USHORT FIFO=1024;         //!4096??
+USHORT pages=128;  // количество страниц IrqStep в кольцевом буфере PC
+USHORT multi=4;    // - количество половинок кольцевого буфера, которое мы хотим собрать и записать на диск
+ULONG  pointsize;     // pI->GetParameter(L_POINT_SIZE, &ps) возвращает размер отсчета в байтах (обычно 2, но 791 4 байта)
 
 using namespace std;
 
@@ -110,6 +127,21 @@ ULONG WINAPI ServiceThread(PVOID ctx)
     return 0;                                         // Вышли
 }
 
+ULONG GetVal(void)
+{
+    ASYNC_PAR pp;
+    ULONG   status;
+    //
+    if (!pI) {
+        return 0;
+    }
+    pp.s_Type = L_ASYNC_ADC_INP;
+    pp.Chn[0] = 0x00; // 0 канал дифф. подключение (в общем случае лог. номер канала)
+    status = pI->IoAsync(&pp);
+    //cout << ".......... ADC_IN: " << hex << pp.Data[0] << (status ? " FAILED" : " SUCCESS") << "\r";
+    return pp.Data[0];
+}
+
 int ADCRead::Init(void)
 {
     ADC_PAR adcPar;
@@ -133,6 +165,7 @@ try{
 
     pIUnknown = CreateInstance(0);
     if (!pIUnknown){
+        M_FAIL("CreateInstance(0)", 123);
         return 2;
     }
     hr = pIUnknown->QueryInterface(IID_ILDEV, (void**)&pI);
