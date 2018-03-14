@@ -116,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent) :
             QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось загрузить файлы конфига.\n Нарушена структура или нет файлов."));
             return;
         }
+        ADC.sett_dRate_kHz = MConf.TelikFreq/(double)1000.0;
         if (ADC.Init()) {
             QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось инициализировать L-Card.\nВставьте устройство в порт и перезапустите программу."));
         }
@@ -364,4 +365,9 @@ void MainWindow::on_MoveAllButton_clicked()
     Standa.MoveX(ui->spinBox->value());
     Standa.MoveY(ui->spinBox_2->value());
     Standa.MoveZ(ui->spinBox_3->value());
+}
+
+void MainWindow::on_pushButton_14_clicked()
+{
+    on_StopButton_clicked();
 }

@@ -61,10 +61,11 @@ int ModuleConfig::Load(void)
         TelikH = d.object()["Telik"].toObject()["H"].toDouble();
         TelikYStep = d.object()["Telik"].toObject()["YStep"].toDouble();
         if (TelikFreq = d.object()["Telik"].toObject()["Freq"].isNull()){
-            TelikFreq = 100000;
+            TelikFreq = 100000.0;
         } else {
             TelikFreq = d.object()["Telik"].toObject()["Freq"].toDouble();
         }
+        TelikFilt = d.object()["Telik"].toObject()["Filt"].toInt();
         //
         AccX = d.object()["Acceleration"].toObject()["X"].toDouble();
         AccY = d.object()["Acceleration"].toObject()["Y"].toDouble();
@@ -378,15 +379,27 @@ int ModuleConfig::WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrV
 int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
 {
     ULONG CurePos = PStri->StartPos;
+    ULONG lastCurePos;
     int CureSpeedTic = (PStri->TargetSpeedTic > MaxSpeedFTic ? MaxSpeedFTic : PStri->TargetSpeedTic);//(PStri->TargetSpeedTic < MinSpeedFTic*PStri->Divisor ? PStri->TargetSpeedTic : MinSpeedFTic*PStri->Divisor);
     int ByteNum = 0;
-    ULONG NextTicInFq;
+    ULONG NextTicInFq, AverageSum = 0, AverageCount = 0;
     double TargetPosM;
     //---Moving2---
     TargetPosM = PStri->EndPos;
     for (ULONG i=PStri->StartByteNum; i<PStri->EndByteNum;i+=2){
         CurePos = (double)((double)PStri->EndPos - (double)PStri->StartPos)*(((double)i - (double)PStri->StartByteNum)/((double)PStri->EndByteNum - (double)PStri->StartByteNum)) + (double)PStri->StartPos;
-        fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[(i-PStri->StartByteNum)/2]);
+        if (!TelikFilt){
+            fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[(i-PStri->StartByteNum)/2]);
+        } else {
+            AverageSum += ArrValue[(i-PStri->StartByteNum)/2];
+            AverageCount++;
+            if ((i==PStri->StartByteNum) || (lastCurePos != CurePos)){
+                fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, AverageSum/AverageCount);
+                AverageSum = 0;
+                AverageCount = 0;
+                lastCurePos = CurePos;
+            }
+        }
     }
     return 0;
 

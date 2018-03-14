@@ -26,6 +26,7 @@ public:
     int CureArrIdx;
     ULONG64 arrDataIdx[1000];
     int IsStarted;
+    double sett_dRate_kHz;
 };
 
 #endif // ADCREAD_H

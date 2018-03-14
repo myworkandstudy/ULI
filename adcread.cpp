@@ -53,6 +53,7 @@ ULONG   status;
 ADCRead::ADCRead()
 {
     IsStarted = 0;
+    sett_dRate_kHz = 100.0;
     //Init();
 }
 
@@ -258,7 +259,7 @@ try{
     {
         adcPar.t1.s_Type = L_ADC_PARAM;
         adcPar.t1.AutoInit = 1;//1
-        adcPar.t1.dRate = 100.0;
+        adcPar.t1.dRate = sett_dRate_kHz;//100.0;
         adcPar.t1.dKadr = 0;
         adcPar.t1.dScale = 0;
         adcPar.t1.SynchroType = 3; //3

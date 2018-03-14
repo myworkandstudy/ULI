@@ -52,7 +52,7 @@ public:
 public:
     //from file
     double TelikW, TelikH, TelikYStep, TelikFreq, MakeFileWriteCoef, TimeLeft;
-    unsigned int TelikStringTrig = 0;
+    unsigned int TelikStringTrig = 0, TelikFilt = 0;
     double AccX,AccY,AccZ;
     int StartX,StartY,StartZ;
     float SpeedX, SpeedY, SpeedZ;
