@@ -175,6 +175,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
         MC->FixStart(PADC->GetCureByteNum(), PStanda->StateX.CurPos, PStanda->SpeedX, PStanda->PrmsX.AccelT, PStanda->PrmsX.DecelT, MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
         if (MC->TelikWithRet){
             if (PStanda->MoveXSync(xpos2)) return 1;
+            MC->FixStop(PADC->GetCureByteNum(), PStanda->StateX.CurPos);
             PStanda->SetSpeedX(MC->TelikBackSpeedX);
             if (PStanda->MoveXSync(xpos1)) return 2;
             PStanda->SetSpeedX(MC->SpeedX);
@@ -187,8 +188,8 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
                 if (PStanda->MoveXSync(xpos1))
                     return 2;
             }
+            MC->FixStop(PADC->GetCureByteNum(), PStanda->StateX.CurPos);
         }
-        MC->FixStop(PADC->GetCureByteNum(), PStanda->StateX.CurPos);
         //
         //PStanda->StateY.CurPos = ypos;
         //Sleep(5);
