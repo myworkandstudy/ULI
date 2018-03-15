@@ -14,7 +14,14 @@ ModuleConfig::ModuleConfig()
 {
     hThread = NULL;
     mystate = 1;
+    TelikStop = 0;
 }
+
+ModuleConfig::~ModuleConfig()
+{
+    if (hThread) CloseHandle(hThread);
+}
+
 
 int ModuleConfig::Load(void)
 {
@@ -66,6 +73,12 @@ int ModuleConfig::Load(void)
             TelikFreq = d.object()["Telik"].toObject()["Freq"].toDouble();
         }
         TelikFilt = d.object()["Telik"].toObject()["Filt"].toInt();
+        TelikWithRet = d.object()["Telik"].toObject()["WithRet"].toInt();
+        if (TelikBackSpeedX = d.object()["Telik"].toObject()["BackSpeedX"].isNull()){
+            TelikBackSpeedX = 1000.0;
+        } else {
+            TelikBackSpeedX = d.object()["Telik"].toObject()["BackSpeedX"].toDouble();
+        }
         //
         AccX = d.object()["Acceleration"].toObject()["X"].toDouble();
         AccY = d.object()["Acceleration"].toObject()["Y"].toDouble();
@@ -150,6 +163,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     int pari = 0;
     int ystep = (int) MC->TelikYStep;
     int ystart = PStanda->StateY.CurPos + ystep;
+    ULONG telikstop=0;
     //PADC->Init();
     //Sleep(50);
     //Начали считывать данные
@@ -157,19 +171,22 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     PADC->StartGetData();
     for (int ypos=ystart; ypos<=MC->StartY+MC->TelikH; ypos+=ystep){
         //Move X
+        InterlockedExchange(&MC->TelikStringTrig, 1);
         MC->FixStart(PADC->GetCureByteNum(), PStanda->StateX.CurPos, PStanda->SpeedX, PStanda->PrmsX.AccelT, PStanda->PrmsX.DecelT, MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
-        pari = !pari;
-        if (pari){
-            //PStanda->StateX.CurPos = xpos2;
-            //Sleep(50);
-            InterlockedExchange(&MC->TelikStringTrig, 1);
-            if (PStanda->MoveXSync(xpos2))
-                return 1;
+        if (MC->TelikWithRet){
+            if (PStanda->MoveXSync(xpos2)) return 1;
+            PStanda->SetSpeedX(MC->TelikBackSpeedX);
+            if (PStanda->MoveXSync(xpos1)) return 2;
+            PStanda->SetSpeedX(MC->SpeedX);
         } else {
-            //PStanda->StateX.CurPos = xpos1;
-            //Sleep(60);
-            if (PStanda->MoveXSync(xpos1))
-                return 2;
+            pari = !pari;
+            if (pari){
+                if (PStanda->MoveXSync(xpos2))
+                    return 1;
+            } else {
+                if (PStanda->MoveXSync(xpos1))
+                    return 2;
+            }
         }
         MC->FixStop(PADC->GetCureByteNum(), PStanda->StateX.CurPos);
         //
@@ -177,6 +194,9 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
         //Sleep(5);
         if (PStanda->MoveYSync(ypos))
             return 3;
+        InterlockedExchange(&telikstop, MC->TelikStop);
+        if (telikstop)
+            break;
     }
     PADC->StopGetData();
     MC->mystate = 5;
@@ -206,9 +226,11 @@ int ModuleConfig::Start(My8SMC1 *PStanda, ADCRead *PADC)
 
 int ModuleConfig::Stop(My8SMC1 *PStanda)
 {
-    mystate = 1;
-    WaitForSingleObject(hThread, 1000);
-    if (hThread) CloseHandle(hThread);
+    //mystate = 1;
+    //WaitForSingleObject(hThread, 1000);
+    //if (hThread) CloseHandle(hThread);
+    InterlockedExchange(&TelikStop, 1);
+    WaitForSingleObject(hThread, INFINITE);
     PStanda->StopX();
     PStanda->StopY();
     PStanda->StopZ();

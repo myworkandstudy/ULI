@@ -218,10 +218,10 @@ void MainWindow::updateTime()
     if (MConf.mystate == 6) lstatus->setText("Текущее состояние программы: Сохраняем результат в файл 3");
     if (MConf.mystate == 7) lstatus->setText("Текущее состояние программы: Готово");
     //
-    if (MConf.mystate>1){
-        double perc = (double)100.0 / MConf.TimeLeft * (double)time1->elapsed();
+    if ((MConf.mystate>1) && (MConf.mystate != 7)){
+        double perc = (double)100.0 / (MConf.TimeLeft*(double)1000.0) * (double)time1->elapsed();
         if (perc > 100) perc = 100;
-        double minleft = (double)(MConf.TimeLeft - (double)time1->elapsed())/(double)60.0;
+        double minleft = (double)(MConf.TimeLeft*(double)1000.0 - (double)time1->elapsed())/(double)60000.0;
         if (minleft < 1) {
             ui->TextProgressBar_label->setText("Выполнено " + QString::number(perc,0,1)
                                                + "% (Осталось меньше минуты)");
@@ -229,6 +229,9 @@ void MainWindow::updateTime()
             ui->TextProgressBar_label->setText("Выполнено " + QString::number(perc,0,1)
                                                + "% (Осталось " + QString::number(minleft,0,1) + " мин)");
         }
+    } else if (MConf.mystate == 7){
+        ui->progressBar->setValue(100);
+        ui->TextProgressBar_label->setText("Готово");
     } else {
         ui->progressBar->setValue(0);
         double TimeLeft_minutes = MConf.TimeLeft / (double)60.0;
