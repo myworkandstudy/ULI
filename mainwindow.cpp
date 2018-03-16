@@ -159,7 +159,11 @@ QChart *MainWindow::createLineChart() const
 void MainWindow::on_HomeXButton_clicked()
 {
     if (QMessageBox::warning(0,tr("Подтверждение"),tr("Подтвердите действие"),QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok){
-        Standa.HomeX();
+        if (Standa.HomeX()){
+            Standa.StopX();
+            QMessageBox::critical(NULL,QObject::tr("Ошибка"),tr("Не удалось найти 0.\n Повторите."));
+        }
+
     }
 }
 
@@ -229,6 +233,7 @@ void MainWindow::updateTime()
             ui->TextProgressBar_label->setText("Выполнено " + QString::number(perc,0,1)
                                                + "% (Осталось " + QString::number(minleft,0,1) + " мин)");
         }
+        ui->progressBar->setValue(perc);
     } else if (MConf.mystate == 7){
         ui->progressBar->setValue(100);
         ui->TextProgressBar_label->setText("Готово");
@@ -243,7 +248,7 @@ void MainWindow::updateTimeGraph()
 {
     //
     xG+=10;
-    if (MConf.TelikStringTrig){//(xG>= m_axisX->max()) {
+    if ((MConf.TelikStringTrig && MConf.mystate>1) || (xG >= m_axisX->max() && MConf.mystate==1)) {
         MConf.TelikStringTrig = 0;
         xG=0;
         series0->clear();
@@ -373,4 +378,11 @@ void MainWindow::on_MoveAllButton_clicked()
 void MainWindow::on_pushButton_14_clicked()
 {
     on_StopButton_clicked();
+}
+
+void MainWindow::on_DebugButton1_clicked()
+{
+    if (QMessageBox::warning(0,tr("Подтверждение"),tr("Подтвердите действие"),QMessageBox::Ok|QMessageBox::Cancel)==QMessageBox::Ok){
+        MConf.MakeDataFile();
+    }
 }

@@ -71,7 +71,7 @@ private:
     double MkmPerTic, MkmPerMs;
     double Aacc,Bacc,Cacc,Adec,Bdec,Cdec;
     int CureArrIdx;
-    TInterpStri arrData[10000];
+    TInterpStri arrData[100000];
 };
 
 #endif // MODULECONFIG_H

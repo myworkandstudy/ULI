@@ -257,7 +257,7 @@ int ModuleConfig::FixStop(ULONG64 ByteNum, int pos)
     arrData[CureArrIdx].EndByteNum = ByteNum;
     arrData[CureArrIdx].EndPos = pos;
     CureArrIdx++;
-    if (CureArrIdx>=10000)
+    if (CureArrIdx>=100000)
         CureArrIdx=0;
     return 0;
 }
@@ -353,9 +353,8 @@ int ModuleConfig::CalcParam(TInterpStri *PStri)
 int ModuleConfig::MakeDataFile()
 {
     UINT16 *ArrValue = NULL;
-    //ULONG *ArrPos;    //TInterpStri Stri;
-    WriteArrToFile2();
-    //LoadStriFromFile2();
+    //
+    LoadStriFromFile2();
     SYSTEMTIME st;
     GetLocalTime(&st);
     std::wstring filename;

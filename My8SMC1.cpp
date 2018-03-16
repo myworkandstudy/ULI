@@ -179,18 +179,15 @@ int My8SMC1::MoveZSync(int DestPos)
 
 int My8SMC1::HomeX(void)
 {
-	HomeDev(DevX);
-	return 0;
+    return HomeDev(DevX);
 }
 int My8SMC1::HomeY(void)
 {
-	HomeDev(DevY);
-	return 0;
+    return HomeDev(DevY);
 }
 int My8SMC1::HomeZ(void)
 {
-	HomeDev(DevZ);
-	return 0;
+    return HomeDev(DevZ);
 }
 
 int My8SMC1::WaitDoneAll(void)
@@ -411,23 +408,17 @@ int My8SMC1::StopDev(DWORD Dev)
 
 int My8SMC1::StopX(void)
 {
-    if (USMC_Stop(DevX))
-        return TRUE;
-    return 0;
+    return USMC_Stop(DevX);
 }
 
 int My8SMC1::StopY(void)
 {
-    if (USMC_Stop(DevY))
-        return TRUE;
-    return 0;
+    return USMC_Stop(DevY);
 }
 
 int My8SMC1::StopZ(void)
 {
-    if (USMC_Stop(DevZ))
-        return TRUE;
-    return 0;
+    return USMC_Stop(DevZ);
 }
 
 int My8SMC1::HomeDev(DWORD Dev)
@@ -460,13 +451,15 @@ int My8SMC1::HomeDev(DWORD Dev)
             MoveDevSync(Dev, State.CurPos + 1);
 		}
 	} while (State.Trailer1);
+    Sleep(30);
     //set 0
     int HomeZero = 0;
 	if (USMC_SetCurrentPosition(Dev, HomeZero))
-		return TRUE;	
-    MoveDevSync(Dev, 0);
+        return TRUE;
+    if (MoveDevSync(Dev, 0))
+        return 1;
 	//flash
-	Sleep(10);
+    Sleep(30);
 	if (USMC_SaveParametersToFlash(Dev))
 		return TRUE;
 	return 0;

@@ -76,6 +76,8 @@ private slots:
 
     void on_pushButton_14_clicked();
 
+    void on_DebugButton1_clicked();
+
 private:
     DataTable m_dataTable;
     Ui::MainWindow *ui;
