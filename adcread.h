@@ -22,7 +22,7 @@ public:
     ULONG CureS;
     ULONG sCureS;
     ULONG64 CureByteNum;
-    ULONG64 CureBIdxFull;
+    volatile LONG64 CureBIdxFull;
     int CureArrIdx;
     ULONG64 arrDataIdx[1000];
     int IsStarted;

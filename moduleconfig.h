@@ -16,8 +16,8 @@ typedef struct InterpStri {
     double DecT;
     double MkmPerFTic;
     int Divisor;
-    ULONG64 StartByteNum;
-    ULONG64 EndByteNum;
+    LONG64 StartTime;
+    LONG64 EndTime;
     double y;
     double z;
 } TInterpStri;
@@ -45,8 +45,8 @@ public:
     int LoadDataFromFile(TInterpStri *, UINT16 *&);
     int MakeDataFile();
     int CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file);
-    int FixStart(ULONG64 ByteNum, int pos, int speed, float acc, float dec, double MkmPerFTic, int divisor, double y, double z);
-    int FixStop(ULONG64 ByteNum, int pos);
+    int FixStart(LONG64, int pos, int speed, float acc, float dec, double MkmPerFTic, int divisor, double y, double z);
+    int FixStop(LONG64, int pos);
     int WriteArrToFile2();
     int CalcParam(TInterpStri *PStri);
     int WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrValue);
@@ -65,7 +65,7 @@ public:
     int mystate;
     //ca
 private:
-    ULONG Freq = 100000;
+    //ULONG Freq = 100000;
     int MinSpeedFTic = 300, MaxSpeedFTic = 5000;
     //!
     double MkmPerTic, MkmPerMs;

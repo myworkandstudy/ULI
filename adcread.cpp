@@ -40,9 +40,9 @@ LONG   stop;
 HANDLE  hThread = NULL;
 ULONG   Tid;
 
-USHORT IrqStep=1024;//777-777%7; // половинка буфера кратная числу каналов или не обязательно кратная
-USHORT FIFO=1024;         //!4096??
-USHORT pages=128;  // количество страниц IrqStep в кольцевом буфере PC
+USHORT IrqStep=4096;    //777-777%7; // половинка буфера кратная числу каналов или не обязательно кратная
+//USHORT FIFO=1024;         //!4096??
+USHORT pages=32; // количество страниц IrqStep в кольцевом буфере PC
 USHORT multi=4;    // - количество половинок кольцевого буфера, которое мы хотим собрать и записать на диск
 ULONG  pointsize;     // pI->GetParameter(L_POINT_SIZE, &ps) возвращает размер отсчета в байтах (обычно 2, но 791 4 байта)
 
@@ -95,28 +95,41 @@ ULONG WINAPI ServiceThread(PVOID ctx)
             if (InterlockedCompareExchange(&complete, 3, 3))
                 return 0;
             InterlockedExchange(&myADC->CureS, *sync);
-            fl2 = (myADC->CureS <= halfbuffer) ? 0 : 1; // Ждем заполнения половинки буфера
-            //
-            tmp1 = ((char*)data_rbuf + (myADC->CureS)*pointsize);
-            val = ((UINT16*)tmp1)[0];
-            InterlockedExchange(&myADC->CureVal, val);
-            //
-            if (InterlockedCompareExchange(&stop, 1, 1)){
+            if (myADC->CureS){
+                fl2 = (myADC->CureS <= halfbuffer) ? 0 : 1; // Ждем заполнения половинки буфера
                 //
-                tmp1 = ((char*)data_rbuf + myADC->CureS*pointsize);
-                WriteFile(hFile, tmp1, halfbuffer*pointsize, &BytesWritten, NULL);
-                return 0;
+                tmp1 = ((char*)data_rbuf + (myADC->CureS-1)*pointsize);
+                val = ((UINT16*)tmp1)[0];
+                if (myADC->CureS==0){
+                    myADC->CureS = 0;
+                }
+                if (val==0){
+                    val = 0;
+                } else {
+                    val = val + 1;
+                }
+                InterlockedExchange(&myADC->CureVal, val);
+                //
+                if (InterlockedCompareExchange(&stop, 1, 1)){
+                    //
+                    tmp1 = ((char*)data_rbuf + myADC->CureS*pointsize);
+                    WriteFile(hFile, tmp1, halfbuffer*pointsize, &BytesWritten, NULL);
+                    return 0;
+                }
+            } else {
+                val = val;
             }
         }
         //tmp = ((char *)fdata + (halfbuffer*i)*pointsize);                     // Настраиваем указатель в файле
         tmp1 = ((char*)data_rbuf + (halfbuffer*fl1)*pointsize);                   // Настраиваем указатель в кольцевом буфере
         //myADC->CureVal = ((UINT16*)tmp1)[0];
-        myADC->CureBIdxFull += ((2*halfbuffer*fl1)*pointsize);
+        ////myADC->CureBIdxFull += ((halfbuffer)*pointsize);
+        InterlockedAdd64(&myADC->CureBIdxFull,(halfbuffer*fl1)*pointsize);
         //memcpy(tmp, tmp1, halfbuffer*pointsize);   // Записываем данные в файл
         WriteFile(hFile, tmp1, halfbuffer*pointsize, &BytesWritten, NULL);
         if (BytesWritten < halfbuffer*pointsize)
             return 1;
-        InterlockedExchange(&myADC->CureS, *sync);
+        //InterlockedExchange(&myADC->CureS, *sync);
         fl1 = (myADC->CureS <= halfbuffer) ? 0 : 1;                 // Обновляем флаг
         //
         if (InterlockedCompareExchange(&stop, 1, 1))
@@ -475,7 +488,7 @@ int ADCRead::StartGetData()
     CureArrIdx = 0;
     IsStarted = 1;
 
-    if (hFile) CloseHandle(hFile);
+    //if (hFile) (hFile);
 
     hFile = CreateFileA("data.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
     if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
@@ -540,11 +553,11 @@ int ADCRead::End()
 
     if (fdata) UnmapViewOfFile(fdata);
     if (hMap) CloseHandle(hMap);
-    if (hFile) CloseHandle(hFile);
+    //if (hFile) CloseHandle(hFile);
 
-    if (fdata1) UnmapViewOfFile(fdata1);
-    if (hMap1) CloseHandle(hMap1);
-    if (hFile1) CloseHandle(hFile1);
+    //if (fdata1) UnmapViewOfFile(fdata1);
+    //if (hMap1) CloseHandle(hMap1);
+    //if (hFile1) CloseHandle(hFile1);
 
     cout << ".......... Exit." << endl;
     return 0;
@@ -570,8 +583,12 @@ int ADCRead::StopGetData()
 
 ULONG64 ADCRead::GetCureByteNum()
 {
+    ULONG64 sCureBIdxFull;
     InterlockedExchange(&sCureS, CureS);
-    CureByteNum = CureBIdxFull + sCureS;
+    InterlockedExchange(&sCureBIdxFull, CureBIdxFull);
+    if (sCureS == 0)
+        sCureS = 2;
+    CureByteNum = (sCureBIdxFull + (sCureS - 2))*pointsize;
     return CureByteNum;
 }
 

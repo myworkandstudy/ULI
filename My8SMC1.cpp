@@ -453,11 +453,18 @@ int My8SMC1::HomeDev(DWORD Dev)
 	} while (State.Trailer1);
     Sleep(30);
     //set 0
-    int HomeZero = 0;
+    int HomeZero = 0;//!!
 	if (USMC_SetCurrentPosition(Dev, HomeZero))
         return TRUE;
-    if (MoveDevSync(Dev, 0))
-        return 1;
+//    Sleep(50);
+//    if (USMC_GetState(Dev, State))
+//        return TRUE;
+//    if (State.CurPos != 0){
+//        if (USMC_SetCurrentPosition(Dev, HomeZero))
+//            return TRUE;
+//    }
+//    if (MoveDevSync(Dev, 0))
+//        return 1;
 	//flash
     Sleep(30);
 	if (USMC_SaveParametersToFlash(Dev))
