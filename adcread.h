@@ -10,6 +10,7 @@ public:
     ~ADCRead();
     int Init(void);
     ULONG GetValue0(void);
+    ULONG GetValue1(void);
     int StartGetData(void);
     int StopGetData(void);
     int End(void);
@@ -17,7 +18,7 @@ public:
     ULONG64 GetCureByteNum();
     int WriteToFile2(void);
     //
-    ULONG CureVal;
+    ULONG CureVal, CureVal2;
     ULONG databufsize;
     ULONG CureS;
     ULONG sCureS;

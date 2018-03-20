@@ -78,7 +78,7 @@ int My8SMC1::Init()
 	Dev = DevX;
 	if (USMC_GetMode(Dev, Mode))
 		return TRUE;
-	Mode.EncoderEn = TRUE;
+    //Mode.EncoderEn = TRUE;
 	Mode.RotTrOp = FALSE;
 	//Mode. = FALSE;
 	Mode.ResetRT = TRUE;
@@ -87,6 +87,8 @@ int My8SMC1::Init()
 	Mode.Tr1T = TRUE;
 	Mode.Tr2T = TRUE;
 	Mode.ResetD = FALSE;
+    Mode.SyncOUTEn = TRUE;
+    Mode.SyncCount = 1;
 	if (USMC_SetMode(Dev, Mode))
 		return TRUE;
     ModeX=Mode;

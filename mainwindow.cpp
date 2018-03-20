@@ -67,6 +67,7 @@ MainWindow::MainWindow(QWidget *parent) :
         //pen.setWidth(3);
         //series->setPen(pen);
         series0->setName("Значение, мВ");
+        series1->setName("Канал 2, мВ");
         //series1->setName("Значение, мВ");
 
         //QLinearGradient gradient(QPointF(0, 0), QPointF(0, 1));
@@ -79,15 +80,17 @@ MainWindow::MainWindow(QWidget *parent) :
     //![4]
         chart = new QChart();
         chart->addSeries(series0);
-        //chart->addSeries(series1);
+        chart->addSeries(series1);
         chart->setTitle("Текущее измерение");
         chart->createDefaultAxes();
         //chart->axisX()->setRange(0, 10000);
         chart->setAxisX(m_axisX,series0);
+        chart->setAxisX(m_axisX,series1);
         m_axisX->setRange(0, 10000);
         m_axisX->setTitleText("Время, мс");
         //chart->axisY()->setRange(0, 2000);
         chart->setAxisY(m_axisY,series0);
+        chart->setAxisY(m_axisY,series1);
         m_axisY->setRange(0, 2000);
     //![4]
 
@@ -213,7 +216,9 @@ void MainWindow::updateTime()
     ui->label_5->setText(QString::number(Standa.StateZ.CurPos));
     //
     ULONG val = ADC.GetValue0();
+    ULONG val2 = ADC.GetValue1();
     ui->label_6->setText(QString::number((LONG)val));
+    ui->label_ADC2->setText(QString::number((LONG)val2));
     //
     if (MConf.mystate == 2) lstatus->setText("Текущее состояние программы: Выставляем начальные позиции");
     if (MConf.mystate == 3) lstatus->setText("Текущее состояние программы: Ожидаем выставления начальных позиций");
@@ -252,8 +257,10 @@ void MainWindow::updateTimeGraph()
         MConf.TelikStringTrig = 0;
         xG=0;
         series0->clear();
+        series1->clear();
     }
     series0->append(xG, (INT16)ADC.GetValue0());
+    series1->append(xG, (INT16)ADC.GetValue1());
 }
 
 void MainWindow::updateTimeDeb()

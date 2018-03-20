@@ -45,6 +45,7 @@ public:
     int LoadDataFromFile(TInterpStri *, UINT16 *&);
     int MakeDataFile();
     int CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file);
+    int Calc2AndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file);
     int FixStart(LONG64, int pos, int speed, float acc, float dec, double MkmPerFTic, int divisor, double y, double z);
     int FixStop(LONG64, int pos);
     int WriteArrToFile2();

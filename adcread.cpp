@@ -87,7 +87,8 @@ ULONG WINAPI ServiceThread(PVOID ctx)
     ULONG BytesWritten;
     myADC->CureByteNum = 0;
 
-    ULONG i=0, val;
+    ULONG i=0, val, val2;
+    int cidx;
     while (1)
     {
         while (fl2 == fl1)
@@ -99,7 +100,16 @@ ULONG WINAPI ServiceThread(PVOID ctx)
                 fl2 = (myADC->CureS <= halfbuffer) ? 0 : 1; // Ждем заполнения половинки буфера
                 //
                 tmp1 = ((char*)data_rbuf + (myADC->CureS-1)*pointsize);
-                val = ((UINT16*)tmp1)[0];
+                cidx = myADC->CureS;
+                if (myADC->CureS < 4)
+                    cidx = (2*halfbuffer) + myADC->CureS;
+                if (myADC->CureS % 4){
+                    val = ((UINT16*)tmp1)[-2];
+                    val2 = ((UINT16*)tmp1)[-1];
+                } else {
+                    val = ((UINT16*)tmp1)[-1];
+                    val2 = ((UINT16*)tmp1)[-2];
+                }
                 if (myADC->CureS==0){
                     myADC->CureS = 0;
                 }
@@ -109,6 +119,7 @@ ULONG WINAPI ServiceThread(PVOID ctx)
                     val = val + 1;
                 }
                 InterlockedExchange(&myADC->CureVal, val);
+                InterlockedExchange(&myADC->CureVal2, val2);
                 //
                 if (InterlockedCompareExchange(&stop, 1, 1)){
                     //
@@ -153,6 +164,21 @@ ULONG GetVal(void)
     pp.Chn[0] = 0x00; // 0 канал дифф. подключение (в общем случае лог. номер канала)
     status = pI->IoAsync(&pp);
     //cout << ".......... ADC_IN: " << hex << pp.Data[0] << (status ? " FAILED" : " SUCCESS") << "\r";
+    return pp.Data[0];
+}
+
+ULONG GetVal2(void)
+{
+    ASYNC_PAR pp;
+    ULONG   status;
+    //
+    if (!pI) {
+        return 0;
+    }
+    pp.s_Type = L_ASYNC_ADC_INP;
+    pp.NCh = 2;
+    pp.Chn[0] = 0x01;
+    status = pI->IoAsync(&pp);
     return pp.Data[0];
 }
 
@@ -281,7 +307,7 @@ try{
         adcPar.t1.SynchroMode = 0;
         adcPar.t1.AdChannel = 0;
         adcPar.t1.AdPorog = 0;
-        adcPar.t1.NCh = 1;
+        adcPar.t1.NCh = 2;
         adcPar.t1.Chn[0] = 0x0;
         adcPar.t1.Chn[1] = 0x1;
         adcPar.t1.Chn[2] = 0x2;
@@ -480,6 +506,15 @@ ULONG ADCRead::GetValue0()
         return CureVal;
     } else {
         return GetVal();
+    }
+}
+
+ULONG ADCRead::GetValue1()
+{
+    if (IsStarted){
+        return CureVal2;
+    } else {
+        return GetVal2();
     }
 }
 

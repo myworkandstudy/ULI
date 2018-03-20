@@ -326,7 +326,8 @@ int ModuleConfig::LoadStriFromFile2()
 
 inline ULONG64 make_even(ULONG64 number)
 {
-    return number = 2*number;//(number / 2) * 2;//n - n % 2;
+    number = (number / 4) * 4;//2*number;//(number / 2) * 2;//n - n % 2;
+    return number*2;
 }
 
 int ModuleConfig::LoadDataFromFile(TInterpStri *PStri, UINT16 *&out_arrData)
@@ -403,7 +404,8 @@ int ModuleConfig::MakeDataFile()
         CalcParam(&arrData[i]);
         //ULONG DataSize = arrData[i].EndByteNum - arrData[i].StartByteNum;
         //ArrPos = new ULONG[DataSize];//Make Arr
-        CalcInterpolAndWrite(ArrValue, &arrData[i], file);
+        //!CalcInterpolAndWrite(ArrValue, &arrData[i], file);
+        Calc2AndWrite(ArrValue, &arrData[i], file);
         //WriteToFile3(&arrData[i], ArrPos, ArrValue);
         //delete [] ArrPos;//Del Arr
         delete [] ArrValue;
@@ -456,6 +458,49 @@ int ModuleConfig::CalcInterpolAndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE
                 lastCurePos = CurePos;
             }
         }
+    }
+    return 0;
+}
+
+int ModuleConfig::Calc2AndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
+{
+    ULONG CurePos = PStri->StartPos;
+    ULONG lastCurePos;
+    ULONG AverageSum = 0, AverageCount = 0;
+    double TargetPosM;
+    //---Moving2---
+    TargetPosM = PStri->EndPos;
+    ULONG64 StartByteNum = make_even((double)PStri->StartTime*((double)TelikFreq/(double)1000000));
+    ULONG64 EndByteNum = make_even((double)PStri->EndTime*((double)TelikFreq/(double)1000000));
+    CurePos = (double)PStri->StartPos;
+    ULONG i=0;
+    int flagFront=1;
+    while (CurePos<PStri->EndPos){
+        //StartByteNum
+        if ( (i+1) > (EndByteNum - StartByteNum))
+            break;
+        //Pulse detected
+        if ((INT16)ArrValue[i + 1] < 2500){
+            if (flagFront){
+                flagFront = 0;
+                CurePos++;
+            }
+        } else {
+            flagFront = 1;
+        }
+        if (!TelikFilt){
+            fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[i]);
+        } else {
+            AverageSum += ArrValue[i];
+            AverageCount++;
+            if ((i==0) || (lastCurePos != CurePos)){
+                fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, AverageSum/AverageCount);
+                AverageSum = 0;
+                AverageCount = 0;
+                lastCurePos = CurePos;
+            }
+        }
+        i+=2;
     }
     return 0;
 }
