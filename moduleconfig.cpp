@@ -176,14 +176,15 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
         InterlockedExchange(&MC->TelikStringTrig, 1);
         auto end = std::chrono::high_resolution_clock::now();
         auto dur = end - start;
-        //std::chrono::duration<long, std::micro> int_usec = dur;
         auto i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
         MC->FixStart(i_mks.count(),
                      PStanda->StateX.CurPos, PStanda->SpeedX,
                      PADC->CureBIdxFull/*PStanda->PrmsX.AccelT*/, PADC->CureS/*PStanda->PrmsX.DecelT*/,
                      MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
+        Sleep(50);
         if (MC->TelikWithRet){
             if (PStanda->MoveXSync(xpos2)) return 1;
+            //Sleep(50);
             end = std::chrono::high_resolution_clock::now();
             dur = end - start;
             i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
@@ -200,6 +201,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
                 if (PStanda->MoveXSync(xpos1))
                     return 2;
             }
+            //Sleep(50);
             end = std::chrono::high_resolution_clock::now();
             dur = end - start;
             i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
@@ -214,6 +216,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
         if (telikstop)
             break;
     }
+    Sleep(50);
     PADC->StopGetData();
     MC->mystate = 5;
     MC->WriteArrToFile2();
@@ -475,7 +478,9 @@ int ModuleConfig::Calc2AndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
     CurePos = (double)PStri->StartPos;
     ULONG i=0;
     int flagFront=1;
-    while (CurePos<PStri->EndPos){
+    int fBack = PStri->StartPos > PStri->EndPos;
+    while ((CurePos<PStri->EndPos && !fBack)
+           || (CurePos>PStri->EndPos && fBack)){
         //StartByteNum
         if ( (i+1) > (EndByteNum - StartByteNum))
             break;
@@ -483,7 +488,7 @@ int ModuleConfig::Calc2AndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
         if ((INT16)ArrValue[i + 1] < 2500){
             if (flagFront){
                 flagFront = 0;
-                CurePos++;
+                fBack ? CurePos-- : CurePos++;
             }
         } else {
             flagFront = 1;

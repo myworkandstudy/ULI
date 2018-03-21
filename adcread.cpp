@@ -24,8 +24,6 @@ typedef IDaqLDevice* (*CREATEFUNCPTR)(ULONG Slot);
 
 LUnknown* pIUnknown;
 IDaqLDevice* pI;
-HRESULT hr;
-HANDLE hVxd;
 
 void     *fdata = NULL, *fdata1 = NULL;
 HANDLE   hFile = NULL, hMap = NULL, hFile1 = NULL, hMap1 = NULL;
@@ -208,16 +206,41 @@ try{
         M_FAIL("CreateInstance(0)", 123);
         return 2;
     }
-    hr = pIUnknown->QueryInterface(IID_ILDEV, (void**)&pI);
-    status = pIUnknown->Release();
-    hVxd = pI->OpenLDevice(); // открываем устройство
-    status = pI->GetSlotParam(&sl);
+    HRESULT hr = pIUnknown->QueryInterface(IID_ILDEV, (void**)&pI);
+    if (!SUCCEEDED(hr)) { cout << "FAILED  -> QueryInterface" << endl; return 1; }
+    cout << "SUCCESS -> QueryInterface" << endl;
 
-    char *bn = new char[5];
+    status = pIUnknown->Release();
+
+    HANDLE hVxd = pI->OpenLDevice(); // открываем устройство
+    if (hVxd == INVALID_HANDLE_VALUE) { M_FAIL("OpenLDevice", hVxd); return 11; }
+    else M_OK("OpenLDevice", endl);
+    cout << ".......... HANDLE: " << hex << hVxd << endl;
+
+    status = pI->GetSlotParam(&sl);
+    if (status != L_SUCCESS) { M_FAIL("GetSlotParam", status); return 11; }
+    else M_OK("GetSlotParam", endl);
+
+    cout << ".......... Type    " << sl.BoardType << endl;
+    cout << ".......... DSPType " << sl.DSPType << endl;
+    cout << ".......... InPipe MTS" << sl.Dma << endl;
+    cout << ".......... OutPipe MTS" << sl.DmaDac << endl;
+
+    //char *bn = new char[6];
+    char bn[6] = "E440\0";// E140 ne nado;
     status = pI->LoadBios(bn);
+    if ((status != L_SUCCESS) && (status != L_NOTSUPPORTED)) { M_FAIL("LoadBios", status); return 11; }
+    else M_OK("LoadBios", endl);
+
     status = pI->PlataTest(); // тестируем успешность загрузки и работоспособность биос
+    if (status != L_SUCCESS) { M_FAIL("PlataTest", status); return 11; }
+    else M_OK("PlataTest", endl);
+
     status = pI->ReadPlataDescr(&pd); // считываем данные о конфигурации платы/модуля.
                                       // ОБЯЗАТЕЛЬНО ДЕЛАТЬ! (иначе расчеты параметров сбора данных невозможны тк нужна информация о названии модуля и частоте кварца )
+    if (status != L_SUCCESS) { M_FAIL("ReadPlataDescr", status); return 11; }
+    else M_OK("ReadPlataDescr", endl);
+
     switch (sl.BoardType)
     {
     case PCIA:
@@ -276,11 +299,6 @@ try{
     }
 
     DWORD tm = 10000000;
-    status = pI->RequestBufferStream(&tm, L_STREAM_ADC);
-    if (status != L_SUCCESS) { M_FAIL("RequestBufferStream(ADC)", status); End(); return 11; }
-    else M_OK("RequestBufferStream(ADC)", endl);
-    cout << ".......... Allocated memory size(word): " << tm << endl;
-
     status = pI->RequestBufferStream(&tm, L_STREAM_ADC);
     if (status != L_SUCCESS) { M_FAIL("RequestBufferStream(ADC)", status); End(); return 11; }
     else M_OK("RequestBufferStream(ADC)", endl);
@@ -493,7 +511,6 @@ try{
     if (status != L_SUCCESS) { M_FAIL("InitStartLDevice(ADC)", status); End(); return 11; }
     else M_OK("InitStartLDevice(ADC)", endl);
 
-    hThread = CreateThread(0, 0x2000, ServiceThread, this, 0, &Tid); // Создаем и запускаем поток сбора данных
 } catch (...){
     return 3;
 }
@@ -524,6 +541,7 @@ int ADCRead::StartGetData()
     IsStarted = 1;
 
     //if (hFile) (hFile);
+    hThread = CreateThread(0, 0x2000, ServiceThread, this, 0, &Tid); // Создаем и запускаем поток сбора данных
 
     hFile = CreateFileA("data.dat", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_FLAG_RANDOM_ACCESS, NULL);
     if (hFile == INVALID_HANDLE_VALUE) { M_FAIL("CreateFile(data.dat)", GetLastError()); End(); return 11; }
@@ -560,16 +578,6 @@ int ADCRead::StartGetData()
 int ADCRead::End()
 {
     stop = 1;
-    if (WAIT_OBJECT_0 == WaitForSingleObject(hThread, 1000)) {
-        complete = 1;
-        //break;
-    }
-    if (!complete)
-    {
-        cout << endl << ".......... Wait for thread completition..." << endl;
-        InterlockedBitTestAndSet(&complete, 0); //complete=1
-        WaitForSingleObject(hThread, INFINITE);
-    }
     if (!pI){
         return 2;
     }
@@ -581,13 +589,10 @@ int ADCRead::End()
     M_OK("Release IDaqLDevice", endl);
     cout << ".......... Ref: " << status << endl;
 
-    InterlockedBitTestAndSet(&complete, 0); //complete=1
-    InterlockedBitTestAndSet(&complete, 1); //complete=3
-    WaitForSingleObject(hThread, 2000);
     if (hThread) CloseHandle(hThread);
 
-    if (fdata) UnmapViewOfFile(fdata);
-    if (hMap) CloseHandle(hMap);
+    //if (fdata) UnmapViewOfFile(fdata);
+    //if (hMap) CloseHandle(hMap);
     //if (hFile) CloseHandle(hFile);
 
     //if (fdata1) UnmapViewOfFile(fdata1);
@@ -602,6 +607,17 @@ int ADCRead::StopGetData()
 {
     IsStarted = 0;
 
+    if (WAIT_OBJECT_0 == WaitForSingleObject(hThread, 1000)) {
+        complete = 1;
+    }
+    if (!complete)
+    {
+        cout << endl << ".......... Wait for thread completition..." << endl;
+        InterlockedBitTestAndSet(&complete, 0); //complete=1
+        InterlockedBitTestAndSet(&complete, 1); //complete=3
+        WaitForSingleObject(hThread, INFINITE);
+    }
+
     if (!pI){
         return 2;
     }
@@ -609,9 +625,13 @@ int ADCRead::StopGetData()
     if (status != L_SUCCESS) { M_FAIL("StopLDevice(ADC)", status); End(); return 11; }
     else M_OK("StopLDevice(ADC)", endl);
 
-    if (hFile) CloseHandle(hFile);
+    if (hFile) {
+        CloseHandle(hFile);
+        hFile = NULL;
+    }
     //
     //End();
+    //Init();
     //
     return 0;
 }
