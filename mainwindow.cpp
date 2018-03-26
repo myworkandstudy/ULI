@@ -130,6 +130,9 @@ MainWindow::MainWindow(QWidget *parent) :
         //ui->statusBar->addWidget();
         lstatus=new QLabel(this);
         statusBar()->addWidget(lstatus);
+        //debug
+        ui->DebugButton1->setVisible(0);
+        ui->label_ADC2->setVisible(0);
 }
 
 MainWindow::~MainWindow()
@@ -184,10 +187,6 @@ void MainWindow::on_HomeZButton_clicked()
     }
 }
 
-void MainWindow::on_pushButton_11_clicked()
-{
-    chart->scroll(ui->lineEdit_6->text().toDouble(), 0);
-}
 
 void MainWindow::on_toolButton_clicked()
 {

@@ -38,8 +38,6 @@ private slots:
 
     void on_HomeZButton_clicked();
 
-    void on_pushButton_11_clicked();
-
     void on_toolButton_clicked();
 
     void updateTime();

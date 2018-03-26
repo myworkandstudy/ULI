@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Telik v1.6b</string>
+   <string>Telik v1.7b</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QWidget" name="horizontalLayoutWidget">
@@ -529,29 +529,6 @@
          </property>
          <layout class="QFormLayout" name="formLayout"/>
         </widget>
-        <widget class="QPushButton" name="pushButton_11">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>240</y>
-           <width>75</width>
-           <height>23</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Scroll</string>
-         </property>
-        </widget>
-        <widget class="QLineEdit" name="lineEdit_6">
-         <property name="geometry">
-          <rect>
-           <x>10</x>
-           <y>220</y>
-           <width>71</width>
-           <height>20</height>
-          </rect>
-         </property>
-        </widget>
         <widget class="QLineEdit" name="lineEdit_7">
          <property name="geometry">
           <rect>
@@ -927,7 +904,7 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>30</y>
+            <y>40</y>
             <width>181</width>
             <height>41</height>
            </rect>
@@ -948,7 +925,7 @@
           <property name="geometry">
            <rect>
             <x>10</x>
-            <y>80</y>
+            <y>100</y>
             <width>181</width>
             <height>41</height>
            </rect>
