@@ -469,7 +469,7 @@ int ModuleConfig::Calc2AndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
 {
     ULONG CurePos = PStri->StartPos;
     ULONG lastCurePos;
-    ULONG AverageSum = 0, AverageCount = 0;
+    LONG AverageSum = 0, AverageCount = 0;
     double TargetPosM;
     //---Moving2---
     TargetPosM = PStri->EndPos;
@@ -494,9 +494,9 @@ int ModuleConfig::Calc2AndWrite(UINT16 *ArrValue, TInterpStri*PStri, FILE* file)
             flagFront = 1;
         }
         if (!TelikFilt){
-            fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, ArrValue[i]);
+            fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, (INT16)ArrValue[i]);
         } else {
-            AverageSum += ArrValue[i];
+            AverageSum += (INT16)ArrValue[i];
             AverageCount++;
             if ((i==0) || (lastCurePos != CurePos)){
                 fprintf_s(file,"%ld; %d; %d; %d\n", CurePos, (int)PStri->y, (int)PStri->z, AverageSum/AverageCount);
