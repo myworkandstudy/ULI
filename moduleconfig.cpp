@@ -67,7 +67,9 @@ int ModuleConfig::Load(void)
         //
         TelikW = d.object()["Telik"].toObject()["W"].toDouble();
         TelikH = d.object()["Telik"].toObject()["H"].toDouble();
+        TelikLZ = d.object()["Telik"].toObject()["LZ"].toDouble();
         TelikYStep = d.object()["Telik"].toObject()["YStep"].toDouble();
+        TelikZStep = d.object()["Telik"].toObject()["ZStep"].toDouble();
         if (TelikFreq = d.object()["Telik"].toObject()["Freq"].isNull()){
             TelikFreq = 100000.0;
         } else {
@@ -153,7 +155,9 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     //Move to start position
     PStanda->MoveX(MC->StartX);
     PStanda->MoveY(MC->StartY);
-    PStanda->MoveZ(PStanda->StateZ.CurPos);
+    if (MC->TelikZStep){
+        PStanda->MoveZ(MC->StartZ);
+    }
     //Ожидаем выполнения до целей
     MC->mystate = 3;
     PStanda->WaitDoneAll();
@@ -164,57 +168,67 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     int pari = 0;
     int ystep = (int) MC->TelikYStep;
     int ystart = PStanda->StateY.CurPos + ystep;
+    int zstep = (int) MC->TelikZStep;
+    int zstart = PStanda->StateZ.CurPos + zstep;
     ULONG telikstop=0;
     //PADC->Init();
     //Sleep(50);
+    int flagBreak = 0;
     //Начали считывать данные
     MC->mystate = 4;
     PADC->StartGetData();
     auto start = std::chrono::high_resolution_clock::now();
-    for (int ypos=ystart; ypos<=MC->StartY+MC->TelikH; ypos+=ystep){
-        //Move X
-        InterlockedExchange(&MC->TelikStringTrig, 1);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto dur = end - start;
-        auto i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
-        MC->FixStart(i_mks.count(),
-                     PStanda->StateX.CurPos, PStanda->SpeedX,
-                     PADC->CureBIdxFull/*PStanda->PrmsX.AccelT*/, PADC->CureS/*PStanda->PrmsX.DecelT*/,
-                     MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
-        Sleep(50);
-        if (MC->TelikWithRet){
-            if (PStanda->MoveXSync(xpos2)) return 1;
-            //Sleep(50);
-            end = std::chrono::high_resolution_clock::now();
-            dur = end - start;
-            i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
-            MC->FixStop(i_mks.count(), PStanda->StateX.CurPos);
-            PStanda->SetSpeedX(MC->TelikBackSpeedX);
-            if (PStanda->MoveXSync(xpos1)) return 2;
-            PStanda->SetSpeedX(MC->SpeedX);
-        } else {
-            pari = !pari;
-            if (pari){
-                if (PStanda->MoveXSync(xpos2))
-                    return 1;
+    for (int zpos=zstart; zpos<=MC->StartZ+MC->TelikLZ; zpos+=zstep){
+        for (int ypos=ystart; ypos<=MC->StartY+MC->TelikH; ypos+=ystep){
+            flagBreak = 1;
+            //Move X
+            InterlockedExchange(&MC->TelikStringTrig, 1);
+            Sleep(50);
+            auto end = std::chrono::high_resolution_clock::now();
+            auto dur = end - start;
+            auto i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
+            MC->FixStart(i_mks.count(),
+                         PStanda->StateX.CurPos, PStanda->SpeedX,
+                         PADC->CureBIdxFull/*PStanda->PrmsX.AccelT*/, PADC->CureS/*PStanda->PrmsX.DecelT*/,
+                         MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
+            Sleep(50);
+            if (MC->TelikWithRet){
+                if (PStanda->MoveXSync(xpos2)) break;//return 1;
+                Sleep(50);
+                end = std::chrono::high_resolution_clock::now();
+                dur = end - start;
+                i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
+                MC->FixStop(i_mks.count(), PStanda->StateX.CurPos);
+                PStanda->SetSpeedX(MC->TelikBackSpeedX);
+                if (PStanda->MoveXSync(xpos1)) break;//return 2;
+                //Sleep(50);
+                PStanda->SetSpeedX(MC->SpeedX);
             } else {
-                if (PStanda->MoveXSync(xpos1))
-                    return 2;
+                pari = !pari;
+                if (pari){
+                    if (PStanda->MoveXSync(xpos2)) break;//return 1;
+                } else {
+                    if (PStanda->MoveXSync(xpos1)) break;//return 2;
+                }
+                Sleep(50);
+                end = std::chrono::high_resolution_clock::now();
+                dur = end - start;
+                i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
+                MC->FixStop(i_mks.count(), PStanda->StateX.CurPos);
             }
-            //Sleep(50);
-            end = std::chrono::high_resolution_clock::now();
-            dur = end - start;
-            i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
-            MC->FixStop(i_mks.count(), PStanda->StateX.CurPos);
+            //
+            //PStanda->StateY.CurPos = ypos;
+            //Sleep(5);
+            if (PStanda->MoveYSync(ypos)) break;//return 3;
+            Sleep(50);
+            InterlockedExchange(&telikstop, MC->TelikStop);
+            if (telikstop)
+                break;
+            flagBreak = 0;
         }
-        //
-        //PStanda->StateY.CurPos = ypos;
-        //Sleep(5);
-        if (PStanda->MoveYSync(ypos))
-            return 3;
-        InterlockedExchange(&telikstop, MC->TelikStop);
-        if (telikstop)
-            break;
+        if (flagBreak) break;
+        if (PStanda->MoveZSync(zpos)) break;//return 3;
+        Sleep(50);
     }
     Sleep(50);
     PADC->StopGetData();

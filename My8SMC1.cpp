@@ -147,36 +147,17 @@ int My8SMC1::MoveDevSync(DWORD Dev, int DestPos)
 
 int My8SMC1::MoveXSync(int DestPos)
 {
-    //if (DestPos==0) DestPos = 3;
-    MoveDev(DevX, DestPos);
-    while(DestPos!=StateX.CurPos){
-        if (USMC_GetState(DevX, StateX))
-            return TRUE;
-        Sleep(20);
-    }
-    return 0;
+    return MoveDevSync(DevX, DestPos);
 }
 
 int My8SMC1::MoveYSync(int DestPos)
 {
-    MoveDev(DevY, DestPos);
-    while(DestPos!=StateY.CurPos){
-        if (USMC_GetState(DevY, StateY))
-            return TRUE;
-        Sleep(20);
-    }
-    return 0;
+    return MoveDevSync(DevY, DestPos);
 }
 
 int My8SMC1::MoveZSync(int DestPos)
 {
-    MoveDev(DevZ, DestPos);
-    while(DestPos!=StateZ.CurPos){
-        if (USMC_GetState(DevZ, StateZ))
-            return TRUE;
-        Sleep(20);
-    }
-    return 0;
+    return MoveDevSync(DevZ, DestPos);
 }
 
 int My8SMC1::HomeX(void)

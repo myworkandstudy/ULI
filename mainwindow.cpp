@@ -291,7 +291,7 @@ void MainWindow::on_CureCoordZButton_clicked()
 void MainWindow::on_StartButton_clicked()
 {
     time1->start();
-    ui->StartButton->setVisible(0);
+    //!ui->StartButton->setVisible(0);
     lstatus->setText("Текущее состояние программы: Выполняется загрузка конфигурации");
     MConf.ExperFileName = ui->lineEdit_2->text().toStdWString();
     //------------------------------------

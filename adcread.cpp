@@ -507,10 +507,6 @@ try{
 
     //pI->EnableCorrection(); // можно включить коррекцию данных, если она поддерживается модулем
 
-    status = pI->InitStartLDevice(); // Инициализируем внутренние переменные драйвера
-    if (status != L_SUCCESS) { M_FAIL("InitStartLDevice(ADC)", status); End(); return 11; }
-    else M_OK("InitStartLDevice(ADC)", endl);
-
 } catch (...){
     return 3;
 }
@@ -539,6 +535,7 @@ int ADCRead::StartGetData()
 {
     CureArrIdx = 0;
     IsStarted = 1;
+    complete = 0;
 
     //if (hFile) (hFile);
     hThread = CreateThread(0, 0x2000, ServiceThread, this, 0, &Tid); // Создаем и запускаем поток сбора данных
@@ -550,6 +547,11 @@ int ADCRead::StartGetData()
     if (!pI){
         return 2;
     }
+
+    status = pI->InitStartLDevice(); // Инициализируем внутренние переменные драйвера
+    if (status != L_SUCCESS) { M_FAIL("InitStartLDevice(ADC)", status); End(); return 11; }
+    else M_OK("InitStartLDevice(ADC)", endl);
+
     status = pI->StartLDevice(); // Запускаем сбор в драйвере
     if (status != L_SUCCESS) { M_FAIL("StartLDevice(ADC)", status); End(); return 11; }
     else M_OK("StartLDevice(ADC)", endl);

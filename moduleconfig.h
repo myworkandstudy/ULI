@@ -53,7 +53,7 @@ public:
     int WriteToFile3(TInterpStri *PStri, ULONG *mArrPos, UINT16 *mArrValue);
 public:
     //from file
-    double TelikW, TelikH, TelikYStep, TelikFreq, MakeFileWriteCoef, TimeLeft, TelikBackSpeedX;
+    double TelikW, TelikH, TelikLZ, TelikYStep, TelikZStep, TelikFreq, MakeFileWriteCoef, TimeLeft, TelikBackSpeedX;
     unsigned int TelikStringTrig = 0, TelikFilt = 0, TelikWithRet = 0;
     unsigned long TelikStop;
     double AccX,AccY,AccZ;
