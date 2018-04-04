@@ -190,7 +190,7 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
             MC->FixStart(i_mks.count(),
                          PStanda->StateX.CurPos, PStanda->SpeedX,
                          PADC->CureBIdxFull/*PStanda->PrmsX.AccelT*/, PADC->CureS/*PStanda->PrmsX.DecelT*/,
-                         MC->mkmX, PStanda->StateX.SDivisor, ypos, PStanda->StateZ.CurPos);
+                         MC->mkmX, PStanda->StateX.SDivisor, PStanda->StateY.CurPos, PStanda->StateZ.CurPos);
             Sleep(50);
             if (MC->TelikWithRet){
                 if (PStanda->MoveXSync(xpos2)) break;//return 1;
