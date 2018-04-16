@@ -46,6 +46,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->label_13->hide();
     ui->label_14->hide();
     ui->label_15->hide();
+    ui->DebugButton1->hide();
 
 
     //![1]
@@ -224,7 +225,20 @@ void MainWindow::updateTime()
     if (MConf.mystate == 4) lstatus->setText("Текущее состояние программы: Перемещение и сохранение данных");
     if (MConf.mystate == 5) lstatus->setText("Текущее состояние программы: Сохраняем строки в файл 2");
     if (MConf.mystate == 6) lstatus->setText("Текущее состояние программы: Сохраняем результат в файл 3");
-    if (MConf.mystate == 7) lstatus->setText("Текущее состояние программы: Готово");
+    if (MConf.mystate == 7){
+        lstatus->setText("Текущее состояние программы: Готово");
+        //
+        ui->PwrXButton->setEnabled(1);
+        ui->PwrYButton->setEnabled(1);
+        ui->PwrZButton->setEnabled(1);
+        ui->HomeXButton->setEnabled(1);
+        ui->HomeYButton->setEnabled(1);
+        ui->HomeZButton->setEnabled(1);
+        ui->MoveAllButton->setEnabled(1);
+        ui->spinBox_4->setEnabled(1);
+        ui->verticalSlider_2->setEnabled(1);
+        ui->StartButton->setEnabled(1);
+    }
     //
     if ((MConf.mystate>1) && (MConf.mystate != 7)){
         double perc = (double)100.0 / (MConf.TimeLeft*(double)1000.0) * (double)time1->elapsed();
@@ -312,6 +326,17 @@ void MainWindow::on_StartButton_clicked()
     double maxrange = (double)MConf.TelikW/MConf.SpeedX*(double)1000.0;
     m_axisX->setRange(0, maxrange);
     MConf.Start(&Standa, &ADC);
+    //
+    ui->PwrXButton->setDisabled(1);
+    ui->PwrYButton->setDisabled(1);
+    ui->PwrZButton->setDisabled(1);
+    ui->HomeXButton->setDisabled(1);
+    ui->HomeYButton->setDisabled(1);
+    ui->HomeZButton->setDisabled(1);
+    ui->MoveAllButton->setDisabled(1);
+    ui->spinBox_4->setDisabled(1);
+    ui->verticalSlider_2->setDisabled(1);
+    ui->StartButton->setDisabled(1);
 }
 
 void MainWindow::on_StopButton_clicked()
@@ -319,6 +344,17 @@ void MainWindow::on_StopButton_clicked()
     lstatus->setText("Текущее состояние программы: Остановка процесса");
     MConf.Stop(&Standa);
     lstatus->setText("Текущее состояние программы: Процесс остановлен");
+    //
+    ui->PwrXButton->setEnabled(1);
+    ui->PwrYButton->setEnabled(1);
+    ui->PwrZButton->setEnabled(1);
+    ui->HomeXButton->setEnabled(1);
+    ui->HomeYButton->setEnabled(1);
+    ui->HomeZButton->setEnabled(1);
+    ui->MoveAllButton->setEnabled(1);
+    ui->spinBox_4->setEnabled(1);
+    ui->verticalSlider_2->setEnabled(1);
+    ui->StartButton->setEnabled(1);
 }
 
 void MainWindow::on_PwrXButton_clicked()

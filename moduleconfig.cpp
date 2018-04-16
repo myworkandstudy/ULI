@@ -109,6 +109,9 @@ int ModuleConfig::CalcTimeLeft(void)
     TimeLeft = (double)(TelikW/SpeedX)*(double)(TelikH/TelikYStep);
     TimeLeft += (double)(TelikH/SpeedY);
     TimeLeft = TimeLeft * 1.05;
+    if (TelikZStep>0){
+        TimeLeft = TimeLeft * (double)(TelikLZ/TelikZStep);
+    }
     //время формирования файла
     DFSize = TimeLeft * TelikFreq * 2.0;
     TimeLeft += DFSize*MakeFileWriteCoef;

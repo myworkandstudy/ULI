@@ -142,35 +142,42 @@ int My8SMC1::MoveDevSync(DWORD Dev, int DestPos)
         }
         Sleep(10);
     }
+    GetInfo();
     return 0;
 }
 
 int My8SMC1::MoveXSync(int DestPos)
 {
-    return MoveDevSync(DevX, DestPos);
+    int res = MoveDevSync(DevX, DestPos);
+    return res;
 }
 
 int My8SMC1::MoveYSync(int DestPos)
 {
-    return MoveDevSync(DevY, DestPos);
+    int res = MoveDevSync(DevY, DestPos);
+    return res;
 }
 
 int My8SMC1::MoveZSync(int DestPos)
 {
-    return MoveDevSync(DevZ, DestPos);
+    int res = MoveDevSync(DevZ, DestPos);
+    return res;
 }
 
 int My8SMC1::HomeX(void)
 {
-    return HomeDev(DevX);
+    int res = HomeDev(DevX);
+    return res;
 }
 int My8SMC1::HomeY(void)
 {
-    return HomeDev(DevY);
+    int res = HomeDev(DevY);
+    return res;
 }
 int My8SMC1::HomeZ(void)
 {
-    return HomeDev(DevZ);
+    int res = HomeDev(DevZ);
+    return res;
 }
 
 int My8SMC1::WaitDoneAll(void)
@@ -406,52 +413,59 @@ int My8SMC1::StopZ(void)
 
 int My8SMC1::HomeDev(DWORD Dev)
 {
-    SetSpeedXYZ(HomeSpeed,HomeSpeed,HomeSpeed);//!
-	//phase 1
-	do {
-		if (USMC_GetState(Dev, State))
-			return TRUE;
-		if (State.Trailer1) {
-            MoveDevSync(Dev, State.CurPos + 100);
-		}
-		if (State.Trailer2) {
-            MoveDevSync(Dev, State.CurPos - 100);
-		}
-	} while (State.Trailer1 || State.Trailer2);
-	//phase 2
-	do {
-		if (USMC_GetState(Dev, State))
-			return TRUE;
-		if (!State.Trailer1) {
-            MoveDevSync(Dev, State.CurPos - 100);
-		}
-	} while (!State.Trailer1);
-	//
-	do {
-		if (USMC_GetState(Dev, State))
-			return TRUE;
-		if (State.Trailer1) {
-            MoveDevSync(Dev, State.CurPos + 1);
-		}
-	} while (State.Trailer1);
-    Sleep(30);
-    //set 0
-    int HomeZero = 0;//!!
-	if (USMC_SetCurrentPosition(Dev, HomeZero))
-        return TRUE;
-//    Sleep(50);
-//    if (USMC_GetState(Dev, State))
-//        return TRUE;
-//    if (State.CurPos != 0){
-//        if (USMC_SetCurrentPosition(Dev, HomeZero))
-//            return TRUE;
-//    }
-//    if (MoveDevSync(Dev, 0))
-//        return 1;
-	//flash
-    Sleep(30);
-	if (USMC_SaveParametersToFlash(Dev))
-		return TRUE;
+    //две попытки
+    for (int i = 0;i<2;i++){
+        SetSpeedXYZ(HomeSpeed,HomeSpeed,HomeSpeed);//!
+        //phase 1
+        do {
+            if (USMC_GetState(Dev, State))
+                return TRUE;
+            if (State.Trailer1) {
+                MoveDevSync(Dev, State.CurPos + 100);
+            }
+            if (State.Trailer2) {
+                MoveDevSync(Dev, State.CurPos - 100);
+            }
+        } while (State.Trailer1 || State.Trailer2);
+        //phase 2
+        do {
+            if (USMC_GetState(Dev, State))
+                return TRUE;
+            if (!State.Trailer1) {
+                MoveDevSync(Dev, State.CurPos - 100);
+            }
+        } while (!State.Trailer1);
+        //
+        do {
+            if (USMC_GetState(Dev, State))
+                return TRUE;
+            if (State.Trailer1) {
+                MoveDevSync(Dev, State.CurPos + 1);
+            }
+        } while (State.Trailer1);
+        Sleep(30);
+        //set 0
+        int HomeZero = 0;//!!
+        if (USMC_SetCurrentPosition(Dev, HomeZero))
+            return TRUE;
+        //    Sleep(50);
+        //    if (USMC_GetState(Dev, State))
+        //        return TRUE;
+        //    if (State.CurPos != 0){
+        //        if (USMC_SetCurrentPosition(Dev, HomeZero))
+        //            return TRUE;
+        //    }
+        //    if (MoveDevSync(Dev, 0))
+        //        return 1;
+        //flash
+        Sleep(30);
+        if (USMC_SaveParametersToFlash(Dev))
+            return TRUE;
+        //
+        if (abs(State.CurPos)<50){
+            break;
+        }
+    }
 	return 0;
 }
 
