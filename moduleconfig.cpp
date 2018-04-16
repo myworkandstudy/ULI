@@ -157,6 +157,8 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     PStanda->MoveY(MC->StartY);
     if (MC->TelikZStep){
         PStanda->MoveZ(MC->StartZ);
+    } else {
+        PStanda->MoveZ(PStanda->StateZ.CurPos);
     }
     //Ожидаем выполнения до целей
     MC->mystate = 3;
@@ -167,9 +169,9 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     int xpos2 = xpos1 + MC->TelikW;
     int pari = 0;
     int ystep = (int) MC->TelikYStep;
-    int ystart = PStanda->StateY.CurPos + ystep;
+    int ystart = MC->StartY;
     int zstep = (int) MC->TelikZStep;
-    int zstart = PStanda->StateZ.CurPos + zstep;
+    int zstart = MC->StartZ;
     ULONG telikstop=0;
     //PADC->Init();
     //Sleep(50);
@@ -179,8 +181,11 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     PADC->StartGetData();
     auto start = std::chrono::high_resolution_clock::now();
     for (int zpos=zstart; zpos<=MC->StartZ+MC->TelikLZ; zpos+=zstep){
+        if (PStanda->MoveZSync(zpos)) break;
         for (int ypos=ystart; ypos<=MC->StartY+MC->TelikH; ypos+=ystep){
             flagBreak = 1;
+            if (PStanda->MoveYSync(ypos)) break;//return 3;
+            //Sleep(50);
             //Move X
             InterlockedExchange(&MC->TelikStringTrig, 1);
             Sleep(50);
@@ -216,19 +221,12 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
                 i_mks = std::chrono::duration_cast<std::chrono::microseconds>(dur);
                 MC->FixStop(i_mks.count(), PStanda->StateX.CurPos);
             }
-            //
-            //PStanda->StateY.CurPos = ypos;
-            //Sleep(5);
-            if (PStanda->MoveYSync(ypos)) break;//return 3;
-            Sleep(50);
             InterlockedExchange(&telikstop, MC->TelikStop);
             if (telikstop)
                 break;
             flagBreak = 0;
         }
-        if (flagBreak) break;
-        if (PStanda->MoveZSync(zpos)) break;//return 3;
-        Sleep(50);
+        if (flagBreak || zstep==0) break;
     }
     Sleep(50);
     PADC->StopGetData();

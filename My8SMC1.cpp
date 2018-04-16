@@ -137,7 +137,7 @@ int My8SMC1::MoveDevSync(DWORD Dev, int DestPos)
     while(DestPos!=State.CurPos){
         if (USMC_GetState(Dev, State))
             return TRUE;
-        if ((State.AReset==0) || (State.Trailer1) || (State.Trailer2)){
+        if ((State.Trailer1) || (State.Trailer2)){//(State.AReset==0) ||
             break;
         }
         Sleep(10);
