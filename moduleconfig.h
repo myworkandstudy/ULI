@@ -64,6 +64,7 @@ public:
     std::wstring ExperFileName;
     std::string serX,serY,serZ;
     int mystate;
+    std::wstring myfilename;
     //ca
 private:
     //ULONG Freq = 100000;

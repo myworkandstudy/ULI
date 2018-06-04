@@ -323,7 +323,7 @@ void MainWindow::on_StartButton_clicked()
     Standa.GetInfo();
     //
     lstatus->setText("Текущее состояние программы: Выполняется задание");
-    double maxrange = (double)MConf.TelikW/MConf.SpeedX*(double)1000.0;
+    double maxrange = (double)MConf.TelikW/(MConf.SpeedX/Standa.StateX.SDivisor)*(double)1000.0;
     m_axisX->setRange(0, maxrange);
     MConf.Start(&Standa, &ADC);
     //

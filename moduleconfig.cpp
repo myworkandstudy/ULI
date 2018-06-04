@@ -179,12 +179,12 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
     //PADC->Init();
     //Sleep(50);
     int flagBreak = 0;
-    //Начали считывать данные
-    MC->mystate = 4;
-    PADC->StartGetData();
-    auto start = std::chrono::high_resolution_clock::now();
     for (int zpos=zstart; zpos<=MC->StartZ+MC->TelikLZ; zpos+=zstep){
         if (PStanda->MoveZSync(zpos)) break;
+        //Начали считывать данные
+        MC->mystate = 4;
+        PADC->StartGetData();
+        auto start = std::chrono::high_resolution_clock::now();
         for (int ypos=ystart; ypos<=MC->StartY+MC->TelikH; ypos+=ystep){
             flagBreak = 1;
             if (PStanda->MoveYSync(ypos)) break;//return 3;
@@ -229,14 +229,14 @@ ULONG WINAPI SynThread(PVOID stk/*Context*/)
                 break;
             flagBreak = 0;
         }
+        Sleep(50);
+        PADC->StopGetData();
+        MC->mystate = 5;
+        MC->WriteArrToFile2();
+        MC->mystate = 6;
+        MC->MakeDataFile();
         if (flagBreak || zstep==0) break;
     }
-    Sleep(50);
-    PADC->StopGetData();
-    MC->mystate = 5;
-    MC->WriteArrToFile2();
-    MC->mystate = 6;
-    MC->MakeDataFile();
     MC->mystate = 7;
     return 0;
 }
@@ -272,6 +272,7 @@ int ModuleConfig::Stop(My8SMC1 *PStanda)
     PStanda->StopX();
     PStanda->StopY();
     PStanda->StopZ();
+    myfilename.clear();
     return 0;
 }
 
@@ -409,10 +410,17 @@ int ModuleConfig::MakeDataFile()
     GetLocalTime(&st);
     std::wstring filename;
     wchar_t filename2[1000];
-    swprintf(filename2, 1000, L"_%d-%02d-%02d_%02d-%02d-%02d.csv", st.wYear, st.wMonth, st.wDay,
-             st.wHour, st.wMinute,st.wSecond);
-    filename = ExperFileName + filename2;
-    FILE* file = _wfopen(filename.c_str(), L"w"); //create empty file3
+    FILE* file;
+    if (myfilename.size()>0){
+        file = _wfopen(filename.c_str(), L"a");
+        filename = myfilename;
+    } else {
+        swprintf(filename2, 1000, L"_%d-%02d-%02d_%02d-%02d-%02d.csv", st.wYear, st.wMonth, st.wDay,
+                 st.wHour, st.wMinute,st.wSecond);
+        filename = ExperFileName + filename2;
+        file = _wfopen(filename.c_str(), L"w"); //create empty file3
+        myfilename = filename;
+    }
     if (!file) {
         qWarning("Не удалось создать файл 3");
         return 1;
